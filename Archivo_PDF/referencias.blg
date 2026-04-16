@@ -1,0 +1,5 @@
+[0] Config.pm:328> INFO - This is Biber 2.21
+[0] Config.pm:331> INFO - Logfile is 'referencias.blg'
+[66] biber:342> INFO - === jue abr 16, 2026, 09:01:04
+[82] Utils.pm:479> ERROR - Cannot find 'referencias.bcf'!
+[82] Biber.pm:137> INFO - ERRORS: 1

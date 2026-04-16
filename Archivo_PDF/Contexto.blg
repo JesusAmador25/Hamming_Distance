@@ -1,0 +1,9 @@
+[0] Config.pm:328> INFO - This is Biber 2.21
+[0] Config.pm:331> INFO - Logfile is 'Contexto.blg'
+[67] biber:342> INFO - === jue abr 16, 2026, 09:07:55
+[80] Biber.pm:421> INFO - Reading 'Contexto.bcf'
+[140] Biber.pm:1002> INFO - Found 0 citekeys in bib section 0
+[151] bbl.pm:676> INFO - Writing 'Contexto.bbl' with encoding 'UTF-8'
+[151] bbl.pm:779> INFO - Output to Contexto.bbl
+[151] Biber.pm:132> WARN - The file 'Contexto.bcf' does not contain any citations!
+[151] Biber.pm:134> INFO - WARNINGS: 1

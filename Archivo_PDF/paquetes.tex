@@ -1,0 +1,38 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage{eso-pic}
+%\usepackage{siunitx}
+\usetikzlibrary{positioning, shapes.geometric, arrows.meta}
+\graphicspath{ {./Imagenes/} }
+\usepackage[pages=some]{background}
+
+\lstset{
+    basicstyle=\ttfamily\scriptsize, % Bajamos de small a scriptsize por lo largo de los #pragma
+    breaklines=true,                 % Activa el quiebre de línea
+    breakatwhitespace=false,         % Cambia a false para que rompa incluso si no hay espacios
+    columns=fullflexible,            % Ayuda a que el espaciado sea más natural
+    keepspaces=true,                 % Mantiene los espacios del código original
+    literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1 {ñ}{{\~n}}1 % Para que acepte acentos en comentarios
+}
+
+%\usepackage[backend=biber,style=authoryear]{biblatex}
+%\usepackage{csquotes}
+%\addbibresource{referencias.bib}
