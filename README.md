@@ -32,13 +32,15 @@ This project provides a verified, self‑contained computation of these maxima u
 
 **... coming soon ...** 
 
-## Contributors
+---
 
-| [Avatar](Perfil GitHub) | Nombre | Enlace |
-| :---: | :--- | :--- |
-| ![Avatar](URL_imagen) | ** Jesus Amador ** | [GitHub](https://github.com/JesusAmador25) |   
-| ![Avatar](URL_imagen) | ** Roberto Hernandez ** | [GitHub](https://github.com/robertoeduardohernandezbenitez-ux) |
-| ![Avatar](URL_imagen) | ** Belinda Hernandez ** | [GitHub](https://github.com/Belinda-Hernandez-Santamaria) |
-| ![Avatar](URL_imagen) | ** Sarai Ramos ** | [GitHub](https://github.com/Sqrt-sarai666) |
+## Functions 
 
+**... coming soon ...** 
+
+---
+
+## Collaborators
+
+**... coming soon ...** 
 
