@@ -21,44 +21,55 @@ def hamming_distance(X, Y):
     return d
 
 
-def hamming_set_c(d, *X):
+def is_valid_set(candidate_set, new_code, min_distance):
+    """
+    Valid if a candidate_set is a valid set, it means that the elements of the set
+    are at least the required distance apart
+    Args:
+        candidate_set: a set of codes with min_distance between them
+        new_code: a code that will be added to the set if it has min_distance with all
+            the elements of th candidate_set
+        min_distance: the minimum distance that must havee the all elements of the set
+            with the new code
+    Returns:
+
+    """
+    for existing in candidate_set:
+        distance = hamming_distance(new_code, existing)
+        if distance < min_distance:
+            return False
+    return True
+
+
+def max_set(codes_list, min_distance):
     """
     Build the set C wich contains all the strings that are a distance d between them
     Args:
-        d: the distance that must have the elements of C
-        *X: the strings, arrays or tuples that we want to know if are in the set C
+        codes_list: the strings, arrays or tuples that we want to know if are in the "best_set"
+        min_distance: the distance that must have the elements of the "best_set"
     Returns:
-        C: the set of strings with distance d between them
+        best_set: the set of strings with min_distance between them
     """
-    X_list = list(X)
-    n = len(X_list)
-    C = set()
+    codes_list = sorted(set(codes_list))
+    n = len(codes_list)
+    best_set = []
 
-    if n == 0 or n == 1:
-        print(
-            "WARNING: You must give at least two string, arrays or tuples, otherwise C is the same X"
-        )
-        return X_list[:]
+    def backtrack(start, current_set):
+        nonlocal best_set  # nonlocal helps us to work with thee set that is out of bactrack
+        if len(current_set) + (n - start) <= len(best_set):
+            return
 
-    for i in range(n):
-        for j in range(i + 1, n):
-            distance = hamming_distance(X_list[i], X_list[j])
-            if distance >= d and X_list[j] not in C:
-                C.add(X_list[i])
-                C.add(X_list[j])
-    C = list(C)
-    m = len(C)
-    max_set = []
-    max_value = 0
-    for k in range(m):
-        distances = []
-        for l in range(m):
-            distances.append(hamming_distance(C[k], C[l]))
-        C1 = [C[i] for i in range(m) if distances[i] >= d]
-        if len(C1) > max_value:
-            max_set, max_value = C1, len(C1)
-    return max_set
+        if len(current_set) > len(best_set):
+            best_set = current_set.copy()
 
+        for i in range(start, n):
+            if is_valid_set(current_set, codes_list[i], min_distance):
+                current_set.append(codes_list[i])
+                backtrack(i + 1, current_set)
+                current_set.pop()
+
+    backtrack(0, [])
+    return best_set
 
 def hamming_instances_generator(n):
     """
