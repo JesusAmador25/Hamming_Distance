@@ -40,7 +40,46 @@ This project provides a verified, self‑contained computation of these maxima u
 
 ---
 
-## Collaborators
+## Team
 
-**... coming soon ...** 
+<table align="center" width= 100% >
+  <tr>
+    <td align="center">
+      <a href="https://github.com/JesusAmador25">
+        <img src="https://github.com/JesusAmador25.png?size=200" width="120" alt=" Jesus Amador " />
+        <br />
+        <sub><b>@JesusAmador25</b></sub>
+      </a>
+      <br />
+      <sub>Jesus Amador</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/robertoeduardohernandezbenitez-ux">
+        <img src="https://github.com/robertoeduardohernandezbenitez-ux.png?size=200" width="120" alt=" Roberto Hernandez " />
+        <br />
+        <sub><b>@robertoeduardohernandezbenitez-ux</b></sub>
+      </a>
+      <br />
+      <sub> Roberto Hernández </sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/Belinda-Hernandez-Santamaria">
+        <img src="https://github.com/Belinda-Hernandez-Santamaria.png?size=200" width="120" alt=" Belinda Hernandez "/>
+        <br />
+        <sub><b>@Belinda-Hernandez-Santamaria</b></sub>
+      </a>
+      <br />
+      <sub> Belinda Hernández </sub>
+    </td>
+        <td align="center">
+      <a href="https://github.com/Sqrt-sarai666">
+        <img src="https://github.com/Sqrt-sarai666.png?size=200" width="120" alt=" Sarai Ramos "/>
+        <br />
+        <sub><b>@Sqrt-sarai666</b></sub>
+      </a>
+      <br />
+      <sub> Sarai Ramos </sub>
+    </td>
+  </tr>
+</table>
 
