@@ -85,3 +85,4 @@ class HammingTupla:
                 tupla = [0] * self.length
                 for index in indices:
                     tupla[index] = 1
+                    yield tuple(tupla)
