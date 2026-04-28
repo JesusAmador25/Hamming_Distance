@@ -83,17 +83,65 @@ def hamming_instances_generator(n):
 
 
 class HammingTupla:
+    """
+    A class to generate binary tuples of a given length with Hamming weight
+    less than or equal to a specified distance.
+
+    Attributes
+    ----------
+    length : int
+        The length of the binary tuples.
+    distance : int
+        The maximum number of 1s (Hamming weight) allowed in each tuple.
+    """
     def __init__(self, length, distance):
+        """
+        Initialize a HammingTupla instance.
+
+        Parameters
+        ----------
+        length : int
+            The length of the binary tuples.
+        distance : int
+            The maximum number of 1s allowed in each tuple.
+        """
         self.length = length
         self.distance = distance
 
     def __repr__(self):
+         """
+        Return a string representation of the object.
+
+        Returns
+        -------
+        str
+            A string describing the instance.
+        """
         return f"HammingTupla(lenght = {self.length}, distance = {self.distance})"
 
     def get_instances(self):
+        """
+        Generate all binary tuples of the given length whose number of 1s
+        is less than or equal to the specified distance.
+
+        Yields
+        ------
+        tuple of int
+            A binary tuple (containing 0s and 1s).
+        """
         for one in range(0, self.distance + 1):
             for indices in itertools.combinations(range(self.length), one):
                 tupla = [0] * self.length
                 for index in indices:
                     tupla[index] = 1
-                    yield tuple(tupla)
+                yield tuple(tupla)
+    def as_list(self):
+        """
+        Return all generated tuples as a list.
+
+        Returns
+        -------
+        list of tuple of int
+            A list containing all generated binary tuples.
+        """
+        return list(self.get_instances())
