@@ -1,1 +1,1 @@
-from hamming_problem import *
+from hammindist.hamming_problem import *
