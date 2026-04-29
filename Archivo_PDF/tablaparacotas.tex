@@ -1,0 +1,46 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{booktabs}
+\usepackage{caption}
+
+\begin{document}
+
+\begin{table}[htbp]
+\centering
+\caption[Tabla de cotas para códigos binarios]{Tabla actualizada de cotas para códigos binarios de longitud menor a 25, con extensión para $d > 10$ \\ \small (Updated Table of Bounds for Binary Codes of Length Less than 25, with Extension for $d > 10$)}
+\label{tab:binary_bounds}
+\smallskip
+\parbox{0.9\linewidth}{\small \textbf{Descripción:} Esta tabla muestra las mejores cotas superiores e inferiores conocidas (rangos separados por guiones) o valores exactos para códigos binarios de longitud $n$ (filas) y distancia mínima $d$ (columnas). Los valores únicos indican cotas exactas. Los rangos como $a-b$ representan el intervalo entre la cota inferior conocida $a$ y la cota superior conocida $b$. Para $n \geq 25$, se incluyen expresiones como $2^{19}-599184$ que denotan valores exactos o cotas calculadas. Esta tabla es una extensión de resultados clásicos para distancias $d>10$, actualizada hasta $n=28$.}
+\medskip
+\begin{tabular}{c c c c c c c c}
+\toprule
+$n$ & $d=4$ & $d=6$ & $d=8$ & $d=10$ & $d=12$ & $d=14$ & $d=16$ \\
+\midrule
+6  & 4            & 2            & 1    & 1    & 1    & 1    & 1 \\
+7  & 8            & 2            & 1    & 1    & 1    & 1    & 1 \\
+8  & 16           & 2            & 2    & 1    & 1    & 1    & 1 \\
+9  & 20           & 4            & 2    & 1    & 1    & 1    & 1 \\
+10 & 40           & 6            & 2    & 2    & 1    & 1    & 1 \\
+11 & 72           & 12           & 2    & 2    & 1    & 1    & 1 \\
+12 & 144          & 24           & 4    & 2    & 2    & 1    & 1 \\
+13 & 256          & 32           & 4    & 2    & 2    & 1    & 1 \\
+14 & 512          & 64           & 8    & 2    & 2    & 2    & 1 \\
+15 & 1024         & 128          & 16   & 4    & 2    & 2    & 1 \\
+16 & 2048         & 256          & 32   & 4    & 2    & 2    & 2 \\
+17 & 2816-3276    & 258-340      & 36   & 6    & 2    & 2    & 2 \\
+18 & 5632-6552    & 512-673      & 64   & 10   & 4    & 2    & 2 \\
+19 & 10496-13104  & 1024-1237    & 128  & 20   & 4    & 2    & 2 \\
+20 & 20480-26168  & 2048-2279    & 256  & 40   & 6    & 2    & 2 \\
+21 & 40960-43688  & 2560-4096    & 512  & 42-47& 8    & 4    & 2 \\
+22 & 81920-87333  & 4096-6941    & 1024 & 64-84& 12   & 4    & 2 \\
+23 & 163840-172361& 8192-13674   & 2048 & 80-150&24   & 4    & 2 \\
+24 & 327680-344308& 16384-24106  & 4096 & 136-268&48  & 6    & 4 \\
+25 & $2^{19}-599184$ & 17920-47538 & 4096-5421 & 192-466 & 52-55 & 8 & 4 \\
+26 & $2^{20}-1198368$ & 32768-84260 & 4104-9275 & 384-836 & 64-96 & 14 & 4 \\
+27 & $2^{21}-2396736$ & 65536-157285 & 8192-17099 & 512-1585 & 128-169 & 28 & 6 \\
+28 & $2^{22}-4792950$ & 131072-291269 & 16384-32151 & 1024-2817 & 178-288 & 56 & 8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}
