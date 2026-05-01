@@ -1,6 +1,72 @@
+# Libraries
 import itertools
 
+# Classes
+class HammingTupla:
+    """
+    A class to generate binary tuples of a given length with Hamming weight
+    less than or equal to a specified distance.
 
+    Attributes
+    ----------
+    lenght : int
+        The lenght of the binary tuples.
+    distance : int
+        The maximum number of 1s (Hamming weight) allowed in each tuple.
+    """
+    def __init__(self, lenght, distance):
+        """
+        Initialize a HammingTupla instance.
+
+        Parameters
+        ----------
+        lenght : int
+            The lenght of the binary tuples.
+        distance : int
+            The maximum number of 1s allowed in each tuple.
+        """
+        self.lenght = lenght
+        self.distance = distance
+
+    def __repr__(self):
+        """
+        Return a string representation of the object.
+
+        Returns
+        -------
+        str
+            A string describing the instance.
+        """
+        return f"HammingTupla(lenght = {self.lenght}, distance = {self.distance})"
+
+    def get_instances(self):
+        """
+        Generate all binary tuples of the given lenght whose number of 1s
+        is less than or equal to the specified distance.
+
+        Yields
+        ------
+        tuple of int
+            A binary tuple (containing 0s and 1s).
+        """
+        for one in range(0, self.distance + 1):
+            for indices in itertools.combinations(range(self.lenght), one):
+                tupla = [0] * self.lenght
+                for index in indices:
+                    tupla[index] = 1
+                yield tuple(tupla)
+    def as_list(self):
+        """
+        Return all generated tuples as a list.
+
+        Returns
+        -------
+        list of tuple of int
+            A list containing all generated binary tuples.
+        """
+        return list(self.get_instances())
+
+# Functions
 def hamming_distance(X, Y):
     """
     Calculate the distance between two elements with the same lenght
@@ -20,7 +86,6 @@ def hamming_distance(X, Y):
             d += 1
     return d
 
-
 def is_valid_set(candidate_set, new_code, min_distance):
     """
     Valid if a candidate_set is a valid set, it means that the elements of the set
@@ -39,7 +104,6 @@ def is_valid_set(candidate_set, new_code, min_distance):
         if distance < min_distance:
             return False
     return True
-
 
 def max_set(codes_list, min_distance):
     """
@@ -80,68 +144,3 @@ def hamming_instances_generator(n):
         instance: a tuple with all the posibles tuples of 0's and 1's with lenght n
     """
     return itertools.product(range(2), repeat=n)
-
-
-class HammingTupla:
-    """
-    A class to generate binary tuples of a given length with Hamming weight
-    less than or equal to a specified distance.
-
-    Attributes
-    ----------
-    length : int
-        The length of the binary tuples.
-    distance : int
-        The maximum number of 1s (Hamming weight) allowed in each tuple.
-    """
-    def __init__(self, length, distance):
-        """
-        Initialize a HammingTupla instance.
-
-        Parameters
-        ----------
-        length : int
-            The length of the binary tuples.
-        distance : int
-            The maximum number of 1s allowed in each tuple.
-        """
-        self.length = length
-        self.distance = distance
-
-    def __repr__(self):
-        """
-        Return a string representation of the object.
-
-        Returns
-        -------
-        str
-            A string describing the instance.
-        """
-        return f"HammingTupla(lenght = {self.length}, distance = {self.distance})"
-
-    def get_instances(self):
-        """
-        Generate all binary tuples of the given length whose number of 1s
-        is less than or equal to the specified distance.
-
-        Yields
-        ------
-        tuple of int
-            A binary tuple (containing 0s and 1s).
-        """
-        for one in range(0, self.distance + 1):
-            for indices in itertools.combinations(range(self.length), one):
-                tupla = [0] * self.length
-                for index in indices:
-                    tupla[index] = 1
-                yield tuple(tupla)
-    def as_list(self):
-        """
-        Return all generated tuples as a list.
-
-        Returns
-        -------
-        list of tuple of int
-            A list containing all generated binary tuples.
-        """
-        return list(self.get_instances())
