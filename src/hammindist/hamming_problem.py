@@ -109,7 +109,7 @@ class HammingTupla:
         self.distance = distance
 
     def __repr__(self):
-         """
+        """
         Return a string representation of the object.
 
         Returns

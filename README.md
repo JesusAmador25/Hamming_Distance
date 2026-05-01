@@ -20,13 +20,6 @@ This project provides a verified, self‑contained computation of these maxima u
 
 ---
 
-## Features
-
-- **Exact computation** of A(9, 4) and A(10, 4).
-- Modular Python library that can be extended to other (n, d) pairs.
-- Implementation of pruning techniques to keep the search feasible.
-
----
 ## Updated Table of Bounds for Binary Codes of Length Less than 25, with Extension for $d > 10$
 
 | n  | d=4           | d=6          | d=8         | d=10      | d=12    | d=14 | d=16 |
@@ -56,6 +49,15 @@ This project provides a verified, self‑contained computation of these maxima u
 | 28 | 2^22-4792950  | 131072-291269| 16384-32151 | 1024-2817 | 178-288 | 56   | 8    |
 
 ---
+
+## Features
+
+- **Exact computation** of A(9, 4) and A(10, 4).
+- Modular Python library that can be extended to other (n, d) pairs.
+- Implementation of pruning techniques to keep the search feasible.
+
+---
+
 ## Installation
 
 **... coming soon ...** 
