@@ -134,3 +134,28 @@ def max_set(codes_list, min_distance):
 
     backtrack(0, [])
     return best_set
+
+def set_obvious(instance, min_distance, length_code):
+    """
+    Returns a set of tuples that start with 'base' (the inverted first
+    min_distance bits of instance) followed by all possible combinations
+    of 0s and 1s to complete the length_code length.
+
+    Args:
+        instance     : binary list or tuple to take the first bits from
+        min_distance : number of bits to take and invert from instance
+        length_code  : total length of each tuple in the result
+    Returns:
+        preliminar_set : set of tuples of length length_code
+    """
+
+    base = [0 if i == 1 else 1 for i in instance[:min_distance]]
+
+    remaining = length_code - min_distance
+    preliminar_set = set()
+
+    for combination in itertools.product([0, 1], repeat=remaining):
+        full_tuple = tuple(base + list(combination))
+        preliminar_set.add(full_tuple)
+
+    return preliminar_set
