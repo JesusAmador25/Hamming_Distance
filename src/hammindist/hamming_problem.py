@@ -134,13 +134,3 @@ def max_set(codes_list, min_distance):
 
     backtrack(0, [])
     return best_set
-
-def hamming_instances_generator(n):
-    """
-    Create a instance for the hamming problem
-    Args:
-        n: is the lenght of each tuple
-    Return:
-        instance: a tuple with all the posibles tuples of 0's and 1's with lenght n
-    """
-    return itertools.product(range(2), repeat=n)
