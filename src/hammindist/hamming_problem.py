@@ -55,6 +55,7 @@ class HammingTupla:
                 for index in indices:
                     tupla[index] = 1
                 yield tuple(tupla)
+ 
     def as_list(self):
         """
         Return all generated tuples as a list.
@@ -105,6 +106,20 @@ def is_valid_set(candidate_set, new_code, min_distance):
             return False
     return True
 
+# Falta comentar esta parte
+def hamming_bound(length, distance):
+    t = (distance - 1)//2
+    return 2**length//sum(comb(length, i) for i in range(t+1))
+
+def plotkin_bound(length, distance):
+    if 2*distance > length:
+        return 2*distance//(2*distance - length)
+    else:
+        return float('inf')
+
+def upper_bound(length, distance):
+    return min(hamming_bound(length, distance), plotkin_bound(length, distance))
+
 def max_set(codes_list, min_distance):
     """
     Build the set C wich contains all the strings that are a distance d between them
@@ -135,27 +150,42 @@ def max_set(codes_list, min_distance):
     backtrack(0, [])
     return best_set
 
-def set_obvious(instance, min_distance, length_code):
+def max_set_bounded(length, min_distance):
     """
-    Returns a set of tuples that start with 'base' (the inverted first
-    min_distance bits of instance) followed by all possible combinations
-    of 0s and 1s to complete the length_code length.
-
+    Build the set C wich contains all the strings that are a distance d between
+    them using a upper bound
     Args:
-        instance     : binary list or tuple to take the first bits from
-        min_distance : number of bits to take and invert from instance
-        length_code  : total length of each tuple in the result
+        codes_list: the strings, arrays or tuples that we want to know if are in the "best_set"
+        min_distance: the distance that must have the elements of the "best_set"
     Returns:
-        preliminar_set : set of tuples of length length_code
+        best_set: the set of strings with min_distance between them
     """
+    code = HammingTupla(length, min_distance)
+    codes_list = code.as_list()
+    best_set = []
 
-    base = [0 if i == 1 else 1 for i in instance[:min_distance]]
+    u_bound = upper_bound(length, min_distance)
 
-    remaining = length_code - min_distance
-    preliminar_set = set()
+    def backtrack(start, current_set):
+        nonlocal best_set  # nonlocal helps us to work with thee set that is out of bactrack
 
-    for combination in itertools.product([0, 1], repeat=remaining):
-        full_tuple = tuple(base + list(combination))
-        preliminar_set.add(full_tuple)
+        if len(current_set) + (len(codes_list) - start) <= len(best_set):
+            return
 
-    return preliminar_set
+        if len(current_set) >= u_bound:
+            if len(current_set) > len(best_set):
+                best_set = current_set.copy()
+            return
+            
+
+        if len(current_set) > len(best_set):
+            best_set = current_set.copy()
+
+        for i in range(start, len(codes_list)):
+            if is_valid_set(current_set, codes_list[i], min_distance):
+                current_set.append(codes_list[i])
+                backtrack(i + 1, current_set)
+                current_set.pop()
+
+    backtrack(0, [])
+    return best_set
