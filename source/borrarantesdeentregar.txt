@@ -1,2 +1,4 @@
 Simetrias/ Orbitas
 http://www.scielo.org.co/scielo.php?pid=S0120-419X2019000100153&script=sci_abstract&tlng=es
+https://delta.cs.cinvestav.mx/~gmorales/TeoriaDeCodigos/node16.html
+https://blog.nekomath.com/algebra-moderna-i-orbita-de-x-y-tipos-de-acciones/
