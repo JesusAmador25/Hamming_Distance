@@ -1,0 +1,186 @@
+\input{paquetes.tex}
+
+\title{Estudio Computacional de $A(n,d)$: \\ El Máximo Tamaño de un Código Binario con Longitud $n$ y Distancia Mínima $d$}
+\author{Amador Jesus, Hernández Roberto, Hernández Belinda, Ramos Sarai }
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+El número $A(n,d)$ representa la máxima cardinalidad posible de un código binario de longitud $n$ y distancia mínima de Hamming $d$. Este problema, central en la teoría de códigos correctores de errores, tiene aplicaciones en comunicaciones digitales y almacenamiento de datos. En este trabajo presentamos un enfoque computacional para determinar $A(n,d)$ para valores pequeños de $n$ y $d$. Reformulamos el problema como la búsqueda de una clique máxima en un grafo de Hamming, implementamos algoritmos exactos (Bron–Kerbosch) y exploramos cotas superiores mediante programación lineal. El reporte incluye el marco teórico, la metodología algorítmica, el diseño de la implementación en Python y los resultados esperados. Todo el código se encuentra en un repositorio de GitHub para facilitar la colaboración y la reproducibilidad.
+\end{abstract}
+
+\section{Introducción}
+\label{sec:intro}
+
+Un \textit{código binario} $C \subseteq \mathbb{F}_2^n$ es un conjunto de palabras (vectores) de longitud $n$ sobre el alfabeto $\{0,1\}$. La \textit{distancia de Hamming} $d_H(x,y)$ entre dos vectores $x,y\in\mathbb{F}_2^n$ es el número de coordenadas en las que difieren. La \textit{distancia mínima} del código es $d = \min_{x\neq y\in C} d_H(x,y)$. El parámetro $A(n,d)$ se define como
+\[
+A(n,d) \;=\; \max\{ |C| \;:\; C\subseteq\mathbb{F}_2^n,\; \forall x\neq y\in C,\; d_H(x,y)\ge d \}.
+\]
+
+Determinar $A(n,d)$ es un problema combinatorio de gran relevancia porque permite conocer el tamaño máximo de un código que puede detectar o corregir un cierto número de errores. Dado que el problema es $\mathcal{NP}$-duro (para $d$ fijo y $n$ variable), no existe una fórmula cerrada general. Sin embargo, para valores pequeños de $n$ y $d$ se han tabulado valores exactos o cotas ajustadas mediante búsqueda exhaustiva y métodos algebraicos.
+
+En este proyecto implementamos un paquete en Python que:
+\begin{enumerate}
+    \item Genera el grafo de Hamming asociado a $(n,d)$,
+    \item Calcula el número clique máximo (solución exacta para $n$ pequeños) mediante el algoritmo de Bron–Kerbosch,
+    \item Proporciona cotas inferiores heurísticas y cotas superiores mediante programación lineal (cota de Delsarte),
+    \item Valida los resultados con tablas de referencia (Brouwer, Agrell).
+\end{enumerate}
+El presente reporte describe los fundamentos teóricos, la metodología computacional y el plan de implementación. Todo el código fuente está versionado en GitHub, lo que permite un trabajo colaborativo eficiente entre los miembros del equipo.
+
+\section{Marco Teórico}
+\label{sec:teoria}
+
+\subsection{Reducción a Problema de Clique en un Grafo}
+\label{sub:grafo}
+Definimos el \textit{grafo de Hamming} $H(n,d) = (V,E)$ donde:
+\[
+V = \mathbb{F}_2^n = \{0,1\}^n,\qquad 
+E = \{ \{u,v\} \subset V : u\neq v,\; d_H(u,v) \ge d \}.
+\]
+Entonces, un código $C$ con distancia mínima $\ge d$ corresponde exactamente a un \textit{conjunto independiente} en el complemento del grafo, o equivalentemente a una \textit{clique} en $H(n,d)$. Por lo tanto,
+\[
+A(n,d) = \omega(H(n,d)),
+\]
+donde $\omega(G)$ denota el número de la clique máxima (el mayor conjunto de vértices mutuamente adyacentes). Esta reformulación permite usar algoritmos estándar de teoría de grafos.
+
+\subsection{Cotas Fundamentales}
+Para acotar $A(n,d)$ sin necesidad de una búsqueda exhaustiva, se utilizan desigualdades clásicas:
+
+\begin{itemize}
+    \item \textbf{Cota de Hamming (esfera-empaquetamiento)}:  
+    \[
+    A(n,d) \le \frac{2^n}{\sum_{i=0}^{\lfloor (d-1)/2\rfloor} \binom{n}{i}}.
+    \]
+    \item \textbf{Cota de Singleton}:  
+    \[
+    A(n,d) \le 2^{n-d+1}.
+    \]
+    \item \textbf{Cota de Plotkin}: si $d > n/2$, entonces $A(n,d) \le \left\lfloor \frac{2d}{2d-n} \right\rfloor$.
+    \item \textbf{Cota de Gilbert–Varshamov (existencial)}: existe un código de tamaño al menos $\frac{2^n}{\sum_{i=0}^{d-1} \binom{n}{i}}$, por lo que $A(n,d) \ge$ esa cantidad.
+\end{itemize}
+Estas cotas nos proporcionan intervalos iniciales y son útiles para verificar la corrección de los resultados computacionales.
+
+\subsection{Complejidad Computacional}
+El problema de determinar $\omega(G)$ para un grafo general es $\mathcal{NP}$-duro y, bajo la hipótesis $\mathcal{P}\neq\mathcal{NP}$, no admite un algoritmo polinomial. Para $H(n,d)$, el número de vértices es $2^n$, lo que restringe los casos tratables exactamente a $n \le 10$ o $n \le 12$ (dependiendo de $d$). Para valores mayores, debemos recurrir a cotas superiores e inferiores obtenidas por métodos heurísticos o de optimización.
+
+\section{Metodología Computacional}
+\label{sec:metodo}
+
+\subsection{Generación del Grafo de Hamming}
+La generación explícita de la matriz de adyacencia requiere $O(2^{2n})$ comparaciones de distancia. Para $n\le 10$ esto es factible (poco más de $10^6$ pares). Implementamos una función que:
+\begin{itemize}
+    \item Enumera todos los vectores de $\mathbb{F}_2^n$ como enteros de $0$ a $2^n-1$ (representación binaria).
+    \item Calcula la distancia de Hamming mediante la operación XOR y el conteo de bits (función \texttt{popcount}).
+    \item Construye un grafo en memoria usando listas de adyacencia (para eficiencia).
+\end{itemize}
+
+\subsection{Algoritmos Exactos: Bron–Kerbosch}
+El algoritmo de Bron–Kerbosch con pivoteo encuentra todas las cliques maximales de un grafo. Su complejidad en el peor caso es $O(3^{|V|/3})$, pero en la práctica es muy eficiente para grafos dispersos. Utilizamos una versión recursiva que mantiene tres conjuntos:
+\begin{itemize}
+    \item \texttt{R}: clique en construcción,
+    \item \texttt{P}: candidatos que pueden extender la clique,
+    \item \texttt{X}: vértices ya procesados (evita duplicados).
+\end{itemize}
+El pivote se elige de $P \cup X$ para minimizar las ramificaciones. El algoritmo se detiene cuando $P$ y $X$ están vacíos, registrando $R$ como una clique maximal. El tamaño máximo entre todas las cliques maximales es $\omega(G)$.
+
+Para $n=10$, $|V|=1024$, el grafo suele ser denso cuando $d$ es pequeño, lo que puede provocar explosión combinatoria. En esos casos se aplican podas adicionales (por ejemplo, ordenar los vértices por grado degenerado).
+
+\subsection{Enfoques Heurísticos para $n$ Moderadamente Grande}
+Para $n > 12$ no es factible ejecutar Bron–Kerbosch. Proponemos dos heurísticas:
+\begin{enumerate}
+    \item \textbf{Búsqueda local greedy}: se parte de un vértice aleatorio y se añaden iterativamente los vértices que sean adyacentes a todos los ya seleccionados, priorizando aquellos con mayor grado.
+    \item \textbf{Algoritmo de recocido simulado}: se define una función de energía negativa del tamaño de la clique y se aplican movimientos de intercambio de vértices.
+\end{enumerate}
+Estas heurísticas proporcionan cotas inferiores (códigos grandes) que pueden ser mejoradas con el tiempo de ejecución.
+
+\subsection{Cotas Superiores mediante Programación Lineal}
+La cota de Delsarte \cite{delsarte1973}, también conocida como cota de programación lineal, ha sido históricamente la mejor para muchos valores de $n$ y $d$. Se basa en las desigualdades de MacWilliams y en los polinomios de Krawtchouk. Resolvemos el siguiente programa lineal (dual) para obtener una cota superior:
+\[
+\max \; \sum_{i=0}^n \beta_i A_i \quad\text{sujeto a}\quad \beta_0=1,\; \beta_i\ge0,\; \sum_{i=0}^n \beta_i K_i(j) \ge 0\; \forall j,
+\]
+donde $K_i(j)$ es el polinomio de Krawtchouk y $(A_i)$ es la distribución de distancias de un código. Este programa se resuelve con bibliotecas de optimización lineal como \texttt{pulp} o \texttt{ortools}.
+
+\section{Plan de Implementación y Resultados Esperados}
+\label{sec:implementacion}
+
+\subsection{Validación con Tablas Conocidas}
+Compararemos los resultados de nuestro código con las tablas de referencia de Brouwer \cite{brouwer2018} y Agrell \cite{agrell2001}. Por ejemplo, sabemos que:
+\[
+A(5,3)=4,\quad A(7,3)=16,\quad A(8,3)=20.
+\]
+Nuestro algoritmo exacto debe reproducir estos valores para $n\le 8$. Para $n=9,10$ compararemos las cotas obtenidas por programación lineal con las reportadas en la literatura.
+\input{tablaparacotas.tex}
+
+\subsection{Resultados Esperados y Análisis}
+Se espera que para $n \le 10$ y $d$ moderado ($d \ge 3$) podamos obtener el valor exacto de $A(n,d)$. Para casos más allá de la capacidad exacta, presentaremos intervalos:
+\[
+A_{\text{inf}}(n,d) \le A(n,d) \le A_{\text{sup}}(n,d),
+\]
+donde $A_{\text{inf}}$ proviene de las heurísticas y $A_{\text{sup}}$ de la cota de Delsarte. Además, mostraremos gráficas de la evolución del tamaño máximo en función de $n$ para $d$ fijo.
+
+\section{Conclusiones y Trabajo Futuro}
+\label{sec:conclusion}
+En este trabajo hemos presentado una metodología computacional para abordar el problema de determinar $A(n,d)$. La reducción a problema de clique en el grafo de Hamming permite aplicar algoritmos bien estudiados, y el uso de cotas teóricas complementa los resultados exactos cuando la búsqueda exhaustiva es inviable. El paquete Python desarrollado será una herramienta didáctica y de referencia para el estudio de códigos binarios.
+
+Como trabajo futuro, planeamos:
+\begin{itemize}
+    \item Incorporar la cota de programación semidefinida (SDP) descrita por Schrijver \cite{schrijver2005}, que mejora la cota de Delsarte.
+    \item Paralelizar el algoritmo de Bron–Kerbosch para aprovechar múltiples núcleos.
+    \item Extender el estudio a códigos no binarios (alfabetos de tamaño $q$).
+\end{itemize}
+Todo el código y el presente reporte están disponibles en el repositorio GitHub del equipo, favoreciendo la transparencia y la colaboración.
+
+\begin{thebibliography}{99}
+
+\bibitem{best1978}
+M. R. Best, A. E. Brouwer, F. J. MacWilliams, A. M. Odlyzko, N. J. A. Sloane.
+\newblock Bounds for binary codes of length less than 25.
+\newblock \textit{IEEE Trans. Inf. Theory}, IT-24(1):81–93, 1978.
+
+\bibitem{agrell2001}
+E. Agrell, A. Vardy, K. Zeger.
+\newblock A table of upper bounds for binary codes.
+\newblock \textit{IEEE Trans. Inf. Theory}, 47(7):3004–3006, 2001.
+
+\bibitem{brouwer2018}
+A. E. Brouwer.
+\newblock Bounds for binary codes.
+\newblock Tablas en línea: \url{https://www.win.tue.nl/~aeb/codes/binary-1.html}, 2018.
+
+\bibitem{delsarte1973}
+P. Delsarte.
+\newblock An algebraic approach to the association schemes of coding theory.
+\newblock \textit{Philips Research Reports Supplements}, No. 10, 1973.
+
+\bibitem{schrijver2005}
+A. Schrijver.
+\newblock New code upper bounds from the Terwilliger algebra and semidefinite programming.
+\newblock \textit{IEEE Trans. Inf. Theory}, 51(8):2859–2866, 2005.
+
+\bibitem{bron1973}
+C. Bron, J. Kerbosch.
+\newblock Algorithm 457: Finding All Cliques of an Undirected Graph.
+\newblock \textit{Commun. ACM}, 16(9):575–577, 1973.
+
+\bibitem{tomita2006}
+E. Tomita, A. Tanaka, H. Takahashi.
+\newblock The worst-case time complexity for generating all maximal cliques.
+\newblock \textit{Theor. Comput. Sci.}, 363(3):260–267, 2006.
+
+\bibitem{ostergard2002}
+P. R. J. Östergård.
+\newblock A fast algorithm for the maximum clique problem.
+\newblock \textit{Discrete Applied Mathematics}, 120(1-3):197–207, 2002.
+
+\bibitem{sagemath}
+Sage Developers.
+\newblock \textit{SageMath Documentation: Coding Theory}.
+\newblock \url{https://doc.sagemath.org/html/en/reference/coding/}, 2024.
+
+\end{thebibliography}
+
+\end{document}
