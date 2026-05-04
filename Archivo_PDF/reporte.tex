@@ -1,3 +1,4 @@
+\documentclass[12pt, spanish]{article}
 \input{paquetes.tex}
 
 \title{Estudio Computacional de $A(n,d)$: \\ El Máximo Tamaño de un Código Binario con Longitud $n$ y Distancia Mínima $d$}
@@ -30,6 +31,14 @@ En este proyecto implementamos un paquete en Python que:
     \item Valida los resultados con tablas de referencia (Brouwer, Agrell).
 \end{enumerate}
 El presente reporte describe los fundamentos teóricos, la metodología computacional y el plan de implementación. Todo el código fuente está versionado en GitHub, lo que permite un trabajo colaborativo eficiente entre los miembros del equipo.
+\section{Distancia de Hamming}
+\noindent
+  Si $x,y \in \{0, 1\}^{n} = \{0, 1\}\times\{0, 1\}\times\cdots\times\{0, 1\}$, enotnces
+  dis$(x,y)$ denota la distancia de Hamming entre $x$ e $y$ (es decir, la cantidad de 
+  simbolos distintos). Un  c\'odigo de longitud $n$ y distancia m\'inima $d$ es un 
+  subconjunto $C \subseteq \{0, 1\}^{n}$ tal que dist$(x,y) \geq d$ para todo $x,y \in C$.
+  Denotemos por $A(n, d)$ el n\'umero m\'aximo de $n$-tuplas en un c\'odigo de longitud $n$ 
+  con distancia m\'inima $d$.
 
 \section{Marco Teórico}
 \label{sec:teoria}
