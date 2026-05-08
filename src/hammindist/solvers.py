@@ -307,3 +307,188 @@ def max_set_bounded(length, min_distance):
 
     backtrack(0, [])
     return best_set
+
+# Prueba 
+def hamming_distance(x: int, y: int, n: int) -> int:
+    """
+    Calcula la distancia de Hamming entre dos enteros x e y,
+    considerando solo los n bits menos significativos.
+    """
+    return (x ^ y).bit_count()  # Python 3.8+: bit_count() es más rápido que bin().count()
+
+def build_adjacency_mask(n: int, d: int) -> list:
+    """
+    Construye una lista de máscaras de adyacencia para el grafo H(n,d).
+    - Cada vértice se representa por un entero de 0 a 2^n - 1.
+    - adj_mask[i] es un entero cuyo bit j está a 1 si el vértice i es adyacente a j (j ≠ i y d_H(i,j) ≥ d).
+    - Usamos un solo entero por vértice (Python int de precisión arbitraria), capaz de manejar hasta 2^n bits.
+    """
+    N = 1 << n                     # N = 2^n, número de vértices
+    adj_mask = [0] * N             # Inicializar lista de máscaras
+
+    # Precalculamos todas las distancias? Podríamos, pero O(N^2) es inevitable para construir el grafo.
+    # Sin embargo, podemos acelerar usando la propiedad de que la distancia de Hamming es el número de unos en XOR.
+    for i in range(N):
+        # Para cada i, recorremos j > i y llenamos simétricamente
+        for j in range(i + 1, N):
+            if hamming_distance(i, j, n) >= d:
+                # Establecer el bit j en la máscara de i
+                adj_mask[i] |= (1 << j)
+                # Y el bit i en la máscara de j
+                adj_mask[j] |= (1 << i)
+    return adj_mask, N
+
+def bron_kerbosch_max_clique2(adj_mask: list[int], N: int) -> int:
+    """
+    Algoritmo de Bron-Kerbosch con pivote y coloreo greedy para encontrar
+    el tamaño de la clique máxima en el grafo representado por adj_mask.
+
+    Parámetros
+    ----------
+    adj_mask : lista de N enteros.
+               adj_mask[i] es un bitset donde el bit j está activo
+               si existe arista entre el vértice i y el vértice j.
+    N        : número de vértices del grafo (debe ser <= 63 para eficiencia,
+               aunque Python soporta enteros arbitrariamente grandes).
+
+    Retorna
+    -------
+    Tamaño (número de vértices) de la clique máxima encontrada.
+
+    Estrategia
+    ----------
+    Los conjuntos se representan como enteros (bitsets):
+      - P (candidatos)  : vértices que aún pueden extender la clique actual.
+      - X (excluidos)   : vértices ya procesados (garantizan maximalidad).
+      - r_size          : tamaño de la clique en construcción (reemplaza al
+                          conjunto R, ya que solo necesitamos su cardinalidad).
+
+    Podas aplicadas:
+      1. Tamaño:   si r_size + |P| <= max_size, esta rama no puede mejorar.
+      2. Coloreo:  si r_size + colores_greedy(P) <= max_size, ídem.
+      3. Pivote:   se elige el vértice u en P∪X con mayor |P ∩ N(u)|,
+                   reduciendo los candidatos a explorar a P \ N(u).
+    """
+
+    # Máscara de N bits para evitar bits "fantasma" al aplicar complemento (~)
+    # En Python los enteros son de precisión arbitraria y con signo,
+    # por lo que ~x activa infinitos bits superiores si no se enmascara.
+    full_mask = (1 << N) - 1
+
+    max_clique_size = 0   # mejor resultado encontrado hasta ahora
+
+    # ── Coloreo greedy ──────────────────────────────────────────────────────────
+    def greedy_color_bound(candidates_mask: int) -> int:
+        """
+        Devuelve una cota superior del tamaño de clique dentro de `candidates_mask`
+        mediante coloreo greedy por clases de color independientes.
+
+        Lógica: el tamaño de la clique máxima <= número cromático del grafo.
+        Se construyen clases de color (conjuntos independientes) de forma greedy:
+        cada vértice se asigna a la primera clase que no tenga ningún vecino suyo.
+        El número de clases necesarias es la cota.
+        """
+        color_classes: list[int] = []   # cada elemento es un bitset (clase de color)
+        remaining = candidates_mask
+
+        while remaining:
+            # Tomar el vértice de menor índice aún sin colorear
+            vertex_bit = remaining & -remaining
+            vertex = vertex_bit.bit_length() - 1
+
+            # Buscar la primera clase existente sin vecinos de `vertex`
+            placed = False
+            for idx, color_class in enumerate(color_classes):
+                if not (color_class & adj_mask[vertex]):
+                    # Ningún nodo de esta clase es vecino de vertex → asignar aquí
+                    color_classes[idx] |= vertex_bit
+                    placed = True
+                    break
+
+            if not placed:
+                # Ninguna clase sirve → abrir una nueva
+                color_classes.append(vertex_bit)
+
+            remaining &= ~vertex_bit
+
+        return len(color_classes)
+
+    # ── Expansión recursiva ─────────────────────────────────────────────────────
+    def expand(r_size: int, P: int, X: int) -> None:
+        """
+        Extiende la clique actual (de tamaño r_size) probando cada candidato en P.
+
+        Parámetros
+        ----------
+        r_size : número de vértices en la clique que se está construyendo.
+        P      : bitset de candidatos que pueden ampliar la clique.
+        X      : bitset de excluidos (ya procesados en ramas anteriores).
+        """
+        nonlocal max_clique_size
+
+        # ── Caso base: clique maximal ───────────────────────────────────────────
+        if P == 0 and X == 0:
+            if r_size > max_clique_size:
+                max_clique_size = r_size
+            return
+
+        # ── Poda 1: tamaño ─────────────────────────────────────────────────────
+        # Si incluso añadiendo todos los candidatos no superamos el máximo, podar.
+        if r_size + P.bit_count() <= max_clique_size:
+            return
+
+        # ── Poda 2: coloreo greedy ─────────────────────────────────────────────
+        # Cota más ajustada: número cromático de P es cota del tamaño de clique en P.
+        if r_size + greedy_color_bound(P) <= max_clique_size:
+            return
+
+        # ── Elegir pivote u en P ∪ X ───────────────────────────────────────────
+        # Criterio: maximizar |P ∩ N(u)| para minimizar los candidatos a explorar.
+        # Cuantos más candidatos cubre el pivote, menos ramas se abren.
+        union_PX = P | X
+        best_pivot = -1
+        best_coverage = -1
+
+        temp = union_PX
+        while temp:
+            u_bit = temp & -temp
+            u = u_bit.bit_length() - 1
+            coverage = (P & adj_mask[u]).bit_count()
+            if coverage > best_coverage:
+                best_coverage = coverage
+                best_pivot = u
+            temp ^= u_bit   # eliminar u_bit de temp
+
+        # Candidatos a explorar: vértices de P que NO son vecinos del pivote.
+        # El pivote ya "cubre" sus vecinos, así que no hay que expandirlos desde aquí.
+        candidates = P & (~adj_mask[best_pivot] & full_mask)
+
+        # ── Ciclo de backtracking ───────────────────────────────────────────────
+        while candidates:
+            # Tomar el candidato de menor índice
+            v_bit = candidates & -candidates
+            v = v_bit.bit_length() - 1
+
+            # Llamada recursiva: añadir v a la clique,
+            # restringir P y X a los vecinos de v.
+            expand(
+                r_size + 1,
+                P & adj_mask[v],
+                X & adj_mask[v],
+            )
+
+            # Mover v de P a X: ya fue procesado en esta rama.
+            P &= ~v_bit
+            X |= v_bit
+
+            # Actualizar candidates eliminando directamente v.
+            # Es equivalente a recalcular P & ~adj_mask[best_pivot] porque
+            # v ya no está en P, y el pivote no cambia en este ciclo.
+            candidates &= ~v_bit
+
+    # ── Llamada inicial ─────────────────────────────────────────────────────────
+    # Al inicio: r_size = 0, P = todos los vértices, X = vacío.
+    all_vertices = full_mask
+    expand(r_size=0, P=all_vertices, X=0)
+
+    return max_clique_size
