@@ -382,7 +382,6 @@ def bron_kerbosch_max_clique2(adj_mask: list[int], N: int) -> int:
         """
         Devuelve una cota superior del tamaño de clique dentro de `candidates_mask`
         mediante coloreo greedy por clases de color independientes.
-
         Lógica: el tamaño de la clique máxima <= número cromático del grafo.
         Se construyen clases de color (conjuntos independientes) de forma greedy:
         cada vértice se asigna a la primera clase que no tenga ningún vecino suyo.
