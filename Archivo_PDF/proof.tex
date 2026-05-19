@@ -1,0 +1,122 @@
+\documentclass[12pt, spanish]{article}
+\input{paquetes}
+% ============================================================
+%  SECCIÓN: Pruebas de Cotas y Argumento de Órbitas
+%  Para insertar en reporte.tex después de \subsection{Cotas Fundamentales}
+% ============================================================
+\begin{document}
+
+
+\subsection*{Pruebas de las Cotas Fundamentales}
+\label{sub:pruebas_cotas}
+
+\subsubsection*{Cota de Hamming (esfera-empaquetamiento)}
+
+\begin{proposition}
+Sea $t = \lfloor \frac{d-1}{2} \rfloor$. Entonces
+\[
+  A(n,d) \;\le\; \frac{2^n}{\displaystyle\sum_{i=0}^{t}\binom{n}{i}}.
+\]
+\end{proposition}
+
+\begin{proof}
+Sea $C \subseteq \{0,1\}^n$ un código con distancia mínima $d$ y $|C| = M$.
+Para cada $c \in C$ definimos la \emph{bola cerrada} de radio $t$:
+\[
+  B(c,\,t) \;=\; \bigl\{\,x \in \{0,1\}^n : d_H(x,c) \le t\,\bigr\}.
+\]
+Afirmamos que estas bolas son \textbf{disjuntas}.
+En efecto, supongamos que existe $x \in B(c,t) \cap B(c',t)$ con $c \neq c'$.
+Entonces, por la desigualdad triangular de la distancia de Hamming,
+\[
+  d_H(c,c') \;\le\; d_H(c,x) + d_H(x,c') \;\le\; t + t \;=\; 2t \;\le\; d-1 < d,
+\]
+lo cual contradice que $d$ es la distancia mínima de $C$.
+
+Como cada bola contiene exactamente $\sum_{i=0}^{t}\binom{n}{i}$ elementos
+(los vectores que difieren de $c$ en exactamente $i$ coordenadas, $0 \le i \le t$),
+y todas están contenidas en $\{0,1\}^n$, la condición de disjunción implica
+\[
+  M \cdot \sum_{i=0}^{t}\binom{n}{i} \;\le\; \bigl|\{0,1\}^n\bigr| = 2^n.
+\]
+Despejando $M$ obtenemos el resultado.
+\end{proof}
+
+\subsubsection*{Cota de Singleton}
+
+\begin{proposition}
+$A(n,d) \le 2^{n-d+1}$.
+\end{proposition}
+
+\begin{proof}
+Sea $C$ un código con distancia mínima $d$.
+Considera la proyección $\pi : \{0,1\}^n \to \{0,1\}^{n-d+1}$ que retiene
+únicamente las primeras $n-d+1$ coordenadas.
+Si $x, y \in C$ con $x \neq y$ satisfacieran $\pi(x) = \pi(y)$,
+entonces $x$ e $y$ coincidirían en las primeras $n-d+1$ coordenadas y,
+por lo tanto, sólo podrían diferir en las restantes $d-1$ posiciones,
+dando $d_H(x,y) \le d-1 < d$, contradicción.
+Luego $\pi\!\restriction_C$ es inyectiva, y como
+$|\{0,1\}^{n-d+1}| = 2^{n-d+1}$, se sigue $|C| \le 2^{n-d+1}$.
+\end{proof}
+
+\subsubsection*{Cota de Plotkin}
+
+\begin{proposition}
+Si $2d > n$, entonces $A(n,d) \le \left\lfloor \dfrac{2d}{2d-n} \right\rfloor$.
+\end{proposition}
+
+\begin{proof}
+Sea $C = \{c_1,\dots,c_M\}$. Contamos la suma de todas las distancias entre pares:
+\[
+  S = \sum_{1 \le i < j \le M} d_H(c_i, c_j).
+\]
+\textbf{Cota inferior de $S$.}
+Como $d_H(c_i,c_j) \ge d$ para todo par $i \neq j$:
+\[
+  S \;\ge\; \binom{M}{2} d \;=\; \frac{M(M-1)}{2}\,d.
+\]
+\textbf{Cota superior de $S$.}
+Para cada coordenada $k \in \{1,\dots,n\}$, sea $n_k$ la cantidad de palabras
+de $C$ con un $1$ en la posición $k$.
+La contribución de la coordenada $k$ a $S$ es $n_k(M - n_k)$.
+Usando $n_k(M-n_k) \le M^2/4$:
+\[
+  S \;=\; \sum_{k=1}^{n} n_k(M-n_k) \;\le\; \frac{nM^2}{4}.
+\]
+\textbf{Combinando.}
+\[
+  \frac{M(M-1)}{2}\,d \;\le\; \frac{nM^2}{4}
+  \;\implies\; 2d(M-1) \;\le\; nM
+  \;\implies\; (2d - n)M \;\le\; 2d.
+\]
+Como $2d > n$ se tiene $2d - n > 0$, así que $M \le \dfrac{2d}{2d-n}$.
+Tomando parte entera: $A(n,d) \le \left\lfloor \dfrac{2d}{2d-n}\right\rfloor$.
+\end{proof}
+
+\subsubsection*{Cota de Gilbert–Varshamov (cota inferior)}
+
+\begin{proposition}
+$A(n,d) \;\ge\; \dfrac{2^n}{\displaystyle\sum_{i=0}^{d-1}\binom{n}{i}}$.
+\end{proposition}
+
+\begin{proof}
+Construimos $C$ de manera \emph{greedy}: partiendo de $C = \emptyset$,
+en cada paso agregamos a $C$ una palabra de $\{0,1\}^n$ que tenga distancia
+$\ge d$ con todas las palabras ya incluidas.
+El proceso termina cuando ninguna palabra restante puede ser añadida,
+es decir, cuando cada $x \in \{0,1\}^n \setminus C$ cumple $d_H(x,c) < d$
+para algún $c \in C$; en otras palabras, $x \in B(c, d-1)$ para algún $c \in C$.
+Esto significa
+\[
+  \{0,1\}^n \;\subseteq\; \bigcup_{c \in C} B(c,\,d-1),
+\]
+y tomando cardinalidades:
+\[
+  2^n \;\le\; |C| \cdot \sum_{i=0}^{d-1}\binom{n}{i}.
+\]
+Despejando obtenemos $|C| \ge \dfrac{2^n}{\sum_{i=0}^{d-1}\binom{n}{i}}$,
+y como $C$ es un código válido, $A(n,d)$ es al menos tan grande.
+\end{proof}
+
+\end{document}
