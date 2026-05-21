@@ -491,3 +491,65 @@ def bron_kerbosch_max_clique2(adj_mask: list[int], N: int) -> int:
     expand(r_size=0, P=all_vertices, X=0)
 
     return max_clique_size
+import random
+
+
+def heuristic_without_upper_bound(n, d, iterations=1000, seed=None):
+    """
+    Estimate A(n, d) — the maximum size of a binary code of length n
+    and minimum Hamming distance d — using a greedy heuristic with
+    random restarts.
+
+    The algorithm builds a valid code greedily: at each step it tries
+    to add a random codeword that satisfies the minimum distance
+    constraint with all already-selected codewords. When no more
+    codewords can be added, it records the size and restarts.
+
+    This is a heuristic, so the result is a lower bound on A(n, d).
+    It is not guaranteed to find the true optimum.
+
+    Parameters
+    ----------
+    n : int
+        Length of the binary codewords.
+    d : int
+        Minimum Hamming distance required between any two codewords.
+    iterations : int, optional
+        Number of random restarts (default is 1000).
+    seed : int or None, optional
+        Random seed for reproducibility (default is None).
+
+    Returns
+    -------
+    best_code : list of tuple of int
+        The largest valid code found.
+    best_size : int
+        The number of codewords in best_code, i.e. the estimate of A(n, d).
+
+    Examples
+    --------
+    >>> code, size = heuristic_A(9, 4)
+    >>> print(size)
+    20  # known value of A(9, 4)
+    """
+    if seed is not None:  # check if the user provided a seed for reproducibility
+        random.seed(seed)  # fix the random seed so results can be reproduced
+
+    # generate all 2^n binary tuples of length n (weight up to n covers everything)
+    all_words = list(HammingTupla(n, n).get_instances())
+
+    best_code = []  # stores the largest valid code found across all iterations
+
+    for _ in range(iterations):  # repeat the greedy construction 'iterations' times
+        candidates = all_words.copy()  # make a fresh copy so the original is not modified
+        random.shuffle(candidates)     # shuffle to explore a different greedy path each restart
+        current_code = []              # start building a new code from scratch
+
+        for word in candidates:  # iterate over every candidate codeword in shuffled order
+            if is_valid_set(current_code, word, d):  # check if word is at least distance d from all chosen words
+                current_code.append(word)            # if valid, add it to the current code
+
+        if len(current_code) > len(best_code):  # compare this iteration's result with the global best
+            best_code = current_code            # update best if a larger valid code was found
+
+    return best_code, len(best_code)  # return the best code found and its size as the estimate of A(n,d)
