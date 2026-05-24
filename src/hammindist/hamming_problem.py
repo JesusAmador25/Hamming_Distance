@@ -298,3 +298,220 @@ def heuristic_without_upper_bound(n, d, iterations=1000, seed=None):
 
     return best_code, len(best_code)  # return the best code found and its size as the estimate of A(n,d)
 
+import random
+
+def greedy_start(all_words, d):
+    """
+    Build an initial valid code using a greedy random approach.
+
+    Shuffles all candidate codewords and adds each one to the code
+    if it satisfies the minimum distance constraint with all
+    already-selected codewords.
+
+    This is used as a warm start for more sophisticated heuristics
+    such as simulated annealing.
+
+    Parameters
+    ----------
+    all_words : list of tuple of int
+        All candidate binary codewords of length n.
+    d : int
+        Minimum Hamming distance required between any two codewords.
+
+    Returns
+    -------
+    code : list of tuple of int
+        A valid code built greedily. Not guaranteed to be optimal.
+    """
+    candidates = all_words.copy()  # copy to avoid modifying the original list
+    random.shuffle(candidates)     # shuffle to get a different start each call
+    code = []                      # initialize empty code
+
+    for word in candidates:                  # iterate over shuffled candidates
+        if is_valid_set(code, word, d):      # check minimum distance constraint
+            code.append(word)                # add word if it is compatible
+
+    return code
+
+def heuristic(n, d, iterations=1000, seed=None):
+    """
+    Estimate A(n, d) — the maximum size of a binary code of length n
+    and minimum Hamming distance d — using a greedy heuristic with
+    random restarts.
+
+    The algorithm builds a valid code greedily: at each step it tries
+    to add a random codeword that satisfies the minimum distance
+    constraint with all already-selected codewords. When no more
+    codewords can be added, it records the size and restarts.
+
+    This is a heuristic, so the result is a lower bound on A(n, d).
+    It is not guaranteed to find the true optimum.
+
+    Parameters
+    ----------
+    n : int
+        Length of the binary codewords.
+    d : int
+        Minimum Hamming distance required between any two codewords.
+    iterations : int, optional
+        Number of random restarts (default is 1000).
+    seed : int or None, optional
+        Random seed for reproducibility (default is None).
+
+    Returns:
+
+    best_code : list of tuple of int
+        The largest valid code found.
+    """
+    if seed is not None:
+        random.seed(seed)
+
+    all_words = list(HammingTupla(n, d).get_instances())
+    best_code = []
+
+    bound = upper_bound(n, d)  # compute the upper bound once before the loop
+
+    for _ in range(iterations):
+        current_code = greedy_start(all_words, d)
+
+        if len(current_code) > len(best_code):
+            best_code = current_code
+
+        if len(best_code) >= bound:  # stop early if the upper bound is reached
+            break
+
+    return best_code
+
+
+import math
+import random
+
+def simulated_annealing(
+    n, d,
+    iterations=5000,
+    T_start=1.0,
+    T_end=0.01,
+    tabu_tenure=20,
+    max_perturbation=3,
+    seed=None
+):
+    """
+    Estimate A(n, d) using simulated annealing with tabu memory and
+    aggressive perturbation.
+
+    At each step, removes between 1 and max_perturbation codewords and
+    attempts to add max_perturbation + 1 new ones. Tabu memory penalizes
+    recently removed codewords, discouraging the search from revisiting
+    the same regions. Accepts worsening moves with probability e^(delta/T)
+    (Boltzmann distribution)to escape local optima.
+
+    Parameters:
+    n : int
+        Length of the binary codewords.
+    d : int
+        Minimum Hamming distance required between any two codewords.
+    iterations : int, optional
+        Number of annealing steps (default 5000).
+    T_start : float, optional
+        Initial temperature, controls early acceptance of worse solutions
+        (default 1.0).
+    T_end : float, optional
+        Final temperature, controls strictness at the end (default 0.01).
+    tabu_tenure : int, optional
+        Number of steps a removed codeword remains tabu (default 20).
+    max_perturbation : int, optional
+        Maximum number of codewords removed per perturbation (default 3).
+    seed : int or None, optional
+        Random seed for reproducibility (default None).
+
+    Returns:
+    best_code : list of tuple of int
+        The largest valid code found.
+    """
+    if seed is not None:                   # fix the random seed if provided
+        random.seed(seed)
+
+    all_words = list(HammingTupla(n, d).get_instances())  # generate all 2^n binary codewords
+    all_words_set = set(all_words)                        # set for fast membership checks
+
+    bound = upper_bound(n, d)             # compute the upper bound once before the loop
+
+    current_code = greedy_start(all_words, d)  # build a warm-start solution with greedy
+    best_code = current_code.copy()            # initialize the global best
+
+    if len(best_code) >= bound:           # if greedy already hits the bound, return immediately
+        return best_code
+
+    # --- tabu memory ---
+    # maps each codeword to the step at which its tabu tenure expires
+    # words not yet in the dict are treated as non-tabu (default expiry -1)
+    tabu_expiry = {}
+
+    # --- cooling schedule ---
+    # geometric decay: T_k = T_start * alpha^k
+    alpha = (T_end / T_start) ** (1 / iterations)
+    T = T_start
+
+    for step in range(iterations):
+
+        # choose how many codewords to remove this step (between 1 and max_perturbation)
+        k = random.randint(1, min(max_perturbation, len(current_code)))
+
+        # prefer removing non-tabu words; fall back to tabu ones if necessary
+        non_tabu = [w for w in current_code if tabu_expiry.get(w, -1) <= step]
+        tabu_in_code = [w for w in current_code if tabu_expiry.get(w, -1) > step]
+
+        if len(non_tabu) >= k:
+            words_to_remove = random.sample(non_tabu, k)   # remove from non-tabu words first
+        else:
+            words_to_remove = non_tabu + random.sample(    # fill the rest from tabu words
+                tabu_in_code, k - len(non_tabu)
+            )
+
+        removed_set = set(words_to_remove)
+        candidate = [w for w in current_code if w not in removed_set]  # build candidate without removed words
+
+        # mark removed words as tabu for the next tabu_tenure steps
+        for word in words_to_remove:
+            tabu_expiry[word] = step + tabu_tenure
+
+        # --- attempt to add k+1 new codewords ---
+        # exclude tabu words and words already in the candidate from the pool
+        outside = [
+            w for w in all_words_set - set(candidate)
+            if tabu_expiry.get(w, -1) <= step          # skip tabu words when adding
+        ]
+        random.shuffle(outside)                        # shuffle to avoid deterministic order
+
+        added = 0
+        for word in outside:
+            if added > k:                              # try to add one more than we removed
+                break
+            if is_valid_set(candidate, word, d):       # check minimum distance constraint
+                candidate.append(word)                 # add word if compatible
+                added += 1
+
+        # --- acceptance criterion ---
+        delta = len(candidate) - len(current_code)    # size difference after perturbation
+
+        if delta > 0:
+            current_code = candidate                   # always accept improvements
+        elif random.random() < math.exp(delta / T):
+            current_code = candidate                   # accept worsening with probability e^(delta/T)
+
+        # --- update global best ---
+        if len(current_code) > len(best_code):
+            best_code = current_code.copy()            # save a copy so further changes don't affect it
+
+        # --- early stopping ---
+        if len(best_code) >= bound:                    # stop if the upper bound is reached
+            break
+
+        if delta > 0:
+            T *= 0.999   # cold
+        else:
+            T *= alpha   # normal
+
+        T = max(T, T_end)  # never less than T_end
+
+    return best_code
