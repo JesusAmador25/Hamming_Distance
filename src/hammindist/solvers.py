@@ -491,10 +491,43 @@ def bron_kerbosch_max_clique2(adj_mask: list[int], N: int) -> int:
     expand(r_size=0, P=all_vertices, X=0)
 
     return max_clique_size
+
 import random
 
+def greedy_start(all_words, d):
+    """
+    Build an initial valid code using a greedy random approach.
 
-def heuristic_without_upper_bound(n, d, iterations=1000, seed=None):
+    Shuffles all candidate codewords and adds each one to the code
+    if it satisfies the minimum distance constraint with all
+    already-selected codewords.
+
+    This is used as a warm start for more sophisticated heuristics
+    such as simulated annealing.
+
+    Parameters
+    ----------
+    all_words : list of tuple of int
+        All candidate binary codewords of length n.
+    d : int
+        Minimum Hamming distance required between any two codewords.
+
+    Returns
+    -------
+    code : list of tuple of int
+        A valid code built greedily. Not guaranteed to be optimal.
+    """
+    candidates = all_words.copy()  # copy to avoid modifying the original list
+    random.shuffle(candidates)     # shuffle to get a different start each call
+    code = []                      # initialize empty code
+
+    for word in candidates:                  # iterate over shuffled candidates
+        if is_valid_set(code, word, d):      # check minimum distance constraint
+            code.append(word)                # add word if it is compatible
+
+    return code
+
+def heuristic(n, d, iterations=1000, seed=None):
     """
     Estimate A(n, d) — the maximum size of a binary code of length n
     and minimum Hamming distance d — using a greedy heuristic with
@@ -519,37 +552,26 @@ def heuristic_without_upper_bound(n, d, iterations=1000, seed=None):
     seed : int or None, optional
         Random seed for reproducibility (default is None).
 
-    Returns
-    -------
+    Returns:
+
     best_code : list of tuple of int
         The largest valid code found.
-    best_size : int
-        The number of codewords in best_code, i.e. the estimate of A(n, d).
-
-    Examples
-    --------
-    >>> code, size = heuristic_A(9, 4)
-    >>> print(size)
-    20  # known value of A(9, 4)
     """
-    if seed is not None:  # check if the user provided a seed for reproducibility
-        random.seed(seed)  # fix the random seed so results can be reproduced
+    if seed is not None:
+        random.seed(seed)
 
-    # generate all 2^n binary tuples of length n (weight up to n covers everything)
     all_words = list(HammingTupla(n, n).get_instances())
+    best_code = []
 
-    best_code = []  # stores the largest valid code found across all iterations
+    bound = upper_bound(n, d)  # compute the upper bound once before the loop
 
-    for _ in range(iterations):  # repeat the greedy construction 'iterations' times
-        candidates = all_words.copy()  # make a fresh copy so the original is not modified
-        random.shuffle(candidates)     # shuffle to explore a different greedy path each restart
-        current_code = []              # start building a new code from scratch
+    for _ in range(iterations):
+        current_code = greedy_start(all_words, d)
 
-        for word in candidates:  # iterate over every candidate codeword in shuffled order
-            if is_valid_set(current_code, word, d):  # check if word is at least distance d from all chosen words
-                current_code.append(word)            # if valid, add it to the current code
+        if len(current_code) > len(best_code):
+            best_code = current_code
 
-        if len(current_code) > len(best_code):  # compare this iteration's result with the global best
-            best_code = current_code            # update best if a larger valid code was found
+        if len(best_code) >= bound:  # stop early if the upper bound is reached
+            break
 
-    return best_code, len(best_code)  # return the best code found and its size as the estimate of A(n,d)
+    return best_code
