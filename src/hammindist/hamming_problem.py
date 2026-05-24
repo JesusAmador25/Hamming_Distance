@@ -489,6 +489,7 @@ def build_hamming_graph(n: int, d: int) -> nx.Graph:
             if hamming_distance(u, v) >= d:
                 G.add_edge(u, v)
     return G
+
 import random
 
 def greedy_start(all_words, d):
