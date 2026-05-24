@@ -1,12 +1,12 @@
 # Libraries
 import itertools
-from math import comb
 import networkx as nx
-import itertools
 import matplotlib.pyplot as plt
+import random
+import math
+import itertools
 import sys
 import time
-import random
 # Classes
 class HammingTupla:
     """
@@ -570,10 +570,6 @@ def heuristic(n, d, iterations=1000, seed=None):
             break
 
     return best_code
-
-
-import math
-import random
 
 def simulated_annealing(
     n, d,
