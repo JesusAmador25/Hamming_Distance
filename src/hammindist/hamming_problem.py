@@ -488,7 +488,8 @@ def build_hamming_graph(n: int, d: int) -> nx.Graph:
         for v in range(u + 1, num_vertices):
             if hamming_distance(u, v) >= d:
                 G.add_edge(u, v)
-    return Gimport random
+    return G
+import random
 
 def greedy_start(all_words, d):
     """
