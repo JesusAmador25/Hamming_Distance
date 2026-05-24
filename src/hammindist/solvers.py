@@ -117,19 +117,6 @@ class HammingTupla:
 
     def draw(self):
         """
-        Render the Hamming graph using Matplotlib with node labels.
-        Uses a spring layout by default to visualize the connections.
-        The nodes are labeled with their corresponding binary tuple.
-        """
-        self._build_graph() # Ensure the graph is built
-        plt.figure(figsize = (10, 10))
-        nx.draw(self.graph, with_labels = True, node_color = 'orchid',
-                    node_size = 80, font_weight = 'bold', font_size = 9)
-        plt.title(f"Hamming Graph (for length={self.lenght})")
-        plt.show()
-
-    def draw_withoutlabels(self):
-        """
         Render the Hamming graph using Matplotlib without node labels.
 
         Useful for larger graphs where text labels would clutter the

@@ -87,6 +87,11 @@ La generación explícita de la matriz de adyacencia requiere $O(2^{2n})$ compar
     \item Construye un grafo en memoria usando listas de adyacencia (para eficiencia).
 \end{itemize}
 
+\vspace{0.5cm} 
+\noindent\textbf{Observación sobre la escalabilidad computacional:} 
+Es crucial notar el crecimiento exponencial del grafo de Hamming $H(n,d)$ al variar sus parámetros. Al aumentar la longitud del código $n$ en una sola unidad, el número total de vértices en el espacio de búsqueda se duplica, pasando de $2^n$ a $2^{n+1}$. Consecuentemente, el número de aristas a evaluar e insertar en el grafo crece de forma drástica. Este rápido aumento en el tamaño de la gráfica representa el principal cuello de botella computacional del problema.
+\vspace{0.5cm}
+
 \subsection{Algoritmos Exactos: Bron–Kerbosch}
 El algoritmo de Bron–Kerbosch con pivoteo encuentra todas las cliques maximales de un grafo. Su complejidad en el peor caso es $O(3^{|V|/3})$, pero en la práctica es muy eficiente para grafos dispersos. Utilizamos una versión recursiva que mantiene tres conjuntos:
 \begin{itemize}
@@ -112,6 +117,17 @@ La cota de Delsarte \cite{delsarte1973}, también conocida como cota de programa
 \max \; \sum_{i=0}^n \beta_i A_i \quad\text{sujeto a}\quad \beta_0=1,\; \beta_i\ge0,\; \sum_{i=0}^n \beta_i K_i(j) \ge 0\; \forall j,
 \]
 donde $K_i(j)$ es el polinomio de Krawtchouk y $(A_i)$ es la distribución de distancias de un código. Este programa se resuelve con bibliotecas de optimización lineal como \texttt{pulp} o \texttt{ortools}.
+
+\subsection{Estrategia Combinada: Acotamiento de $A(n,d)$}
+Dado que los métodos heurísticos no garantizan optimalidad global, nuestro paquete computacional combina los resultados empíricos con límites teóricos para acotar el valor exacto de $A(n,d)$. 
+
+La estrategia computacional define un intervalo de la forma:
+$$A_{\text{inf}}(n,d) \le A(n,d) \le A_{\text{sup}}(n,d)$$
+
+\begin{itemize}
+    \item \textbf{Cota Inferior ($A_{\text{inf}}$):} Se obtiene mediante el tamaño máximo del código generado por nuestro algoritmo goloso multiexploratorio. Toda solución válida construida demuestra la existencia de un código de ese tamaño.
+    \item \textbf{Cota Superior ($A_{\text{sup}}$):} Se calcula dinámicamente evaluando la cota de empaquetamiento estricto de esferas (Cota de Hamming) y la cota de Plotkin. El sistema selecciona automáticamente el valor mínimo (el más restrictivo) entre ambas cotas para el par $(n,d)$ evaluado.
+\end{itemize}
 
 \section{Plan de Implementación y Resultados Esperados}
 \label{sec:implementacion}
@@ -191,5 +207,16 @@ Sage Developers.
 \newblock \url{https://doc.sagemath.org/html/en/reference/coding/}, 2024.
 
 \end{thebibliography}
+
+% --- Inicio de Anexos ---
+\appendix
+\section{Demostraciones de Cotas Teóricas}
+\label{apendice:demostraciones}
+
+En esta sección se presentan las demostraciones formales de las cotas superiores utilizadas en la herramienta computacional para limitar el espacio de búsqueda del parámetro $A(n,d)$.
+
+% Aquí mandas llamar tu archivo externo sin ensuciar este documento
+\input{proof.tex}
+
 
 \end{document}
