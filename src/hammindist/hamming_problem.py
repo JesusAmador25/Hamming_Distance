@@ -42,20 +42,16 @@ class HammingTupla:
 
     def get_instances(self):
         """
-        Generate all binary tuples of the given lenght whose number of 1s
-        is less than or equal to the specified distance.
+        Generate all binary tuples of the given lenght (2^lenght tuples).
+        This method is independent of the distance attribute.
 
         Yields
         ------
         tuple of int
             A binary tuple (containing 0s and 1s).
         """
-        for one in range(0, self.distance + 1):
-            for indices in itertools.combinations(range(self.lenght), one):
-                tupla = [0] * self.lenght
-                for index in indices:
-                    tupla[index] = 1
-                yield tuple(tupla)
+        for tupla in itertools.product([0, 1], repeat = self.lenght):
+                yield tupla
  
     def as_list(self):
         """
