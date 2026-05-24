@@ -46,16 +46,20 @@ class HammingTupla:
         """
         return f"HammingTupla(lenght = {self.lenght}, distance = {self.distance})"
 
-    def get_instances(self):
+    def get_instances_complete(self):
         """
-        Generate all binary tuples of the given lenght whose number of 1s
-        is less than or equal to the specified distance.
+        Generate all binary tuples of the given lenght (2^lenght tuples).
+        This method is independent of the distance attribute.
 
         Yields
         ------
         tuple of int
             A binary tuple (containing 0s and 1s).
         """
+        for tupla in itertools.product([0, 1], repeat = self.lenght):
+                yield tupla
+
+    def get_instances_restricted(self):
         for one in range(0, self.distance + 1):
             for indices in itertools.combinations(range(self.lenght), one):
                 tupla = [0] * self.lenght
@@ -72,8 +76,9 @@ class HammingTupla:
         list of tuple of int
             A list containing all generated binary tuples.
         """
-        return list(self.get_instances())
+        return list(self.get_instances_restricted())
 
+    @staticmethod
     def hamming_distance(X, Y):
         """
         Calculate the distance between two elements with the same lenght
@@ -113,13 +118,13 @@ class HammingTupla:
     def draw(self):
         """
         Render the Hamming graph using Matplotlib with node labels.
-        Uses a spring layout by default to visualize the connections. 
+        Uses a spring layout by default to visualize the connections.
         The nodes are labeled with their corresponding binary tuple.
         """
         self._build_graph() # Ensure the graph is built
         plt.figure(figsize = (10, 10))
         nx.draw(self.graph, with_labels = True, node_color = 'orchid',
-                node_size = 80, font_weight = 'bold', font_size = 9)
+                    node_size = 80, font_weight = 'bold', font_size = 9)
         plt.title(f"Hamming Graph (for length={self.lenght})")
         plt.show()
 
@@ -127,7 +132,7 @@ class HammingTupla:
         """
         Render the Hamming graph using Matplotlib without node labels.
 
-        Useful for larger graphs where text labels would clutter the 
+        Useful for larger graphs where text labels would clutter the
         visualization. Nodes are drawn as small 'orchid' colored circles.
         """
         self._build_graph() # Ensure the graph is built
