@@ -308,4 +308,400 @@ def max_set_bounded(length, min_distance):
 
 # Graphs Functions
 
+#En esta seccion se implementa el algoritmo de Tomita para encontrar el tamaño 
+#del clan maximal de la grafica de Hamming, con algunas optimizaciones como la 
+#reducción por paridad y poda por coloración asi como la creacion de la grafica de Hamming usando networkx.
+#1. Función que calcula el tamaño del clan maximal de la grafica de hamming
+#sin embargo no es eficiente calculando grafos densos como A(8,3) en adelante
+
+sys.setrecursionlimit(1000000)
+
+# def hamming_distance(x: int, y: int) -> int:
+#     return (x ^ y).bit_count()
+
+def build_adjacency_bitsets(n: int, d: int, even_only: bool = False):
+    """Grafo de adyacencia: arista si distancia >= d.
+    Si even_only=True, solo vértices de peso par."""
+    total = 1 << n
+    vertices = [v for v in range(total) if (not even_only) or (v.bit_count() % 2 == 0)]
+    N = len(vertices)
+    idx = {v: i for i, v in enumerate(vertices)}
+    adj = [0] * N
+    for a in range(N):
+        for b in range(a + 1, N):
+            if hamming_distance(vertices[a], vertices[b]) >= d:
+                adj[a] |= (1 << b)
+                adj[b] |= (1 << a)
+    return adj, N, vertices
+
+def greedy_color(P_bits, adj):
+    """Coloreo greedy del subgrafo inducido por P_bits.
+    Devuelve (lista_vertices_ordenados, número_de_colores)."""
+    verts = []
+    bits = P_bits
+    while bits:
+        v = (bits & -bits).bit_length() - 1
+        verts.append(v)
+        bits &= bits - 1
+    if not verts:
+        return [], 0
+    verts.sort(key=lambda v: (P_bits & adj[v]).bit_count(), reverse=True)
+    color = {}
+    max_c = -1
+    for v in verts:
+        used = set()
+        neigh = adj[v] & P_bits
+        nbits = neigh
+        while nbits:
+            u = (nbits & -nbits).bit_length() - 1
+            if u in color:
+                used.add(color[u])
+            nbits &= nbits - 1
+        c = 0
+        while c in used:
+            c += 1
+        color[v] = c
+        if c > max_c:
+            max_c = c
+    num_colors = max_c + 1
+    sorted_verts = sorted(verts, key=lambda v: color[v], reverse=True)
+    return sorted_verts, num_colors
+
+def greedy_initial_clique(adj, N, vertices):
+    """Cota inferior rápida: clique greedy. Devuelve (tamaño, bitset de la clique)."""
+    order = list(range(N))
+    order.sort(key=lambda v: -adj[v].bit_count())
+    current = 0
+    for v in order:
+        if (current & adj[v]) == current:
+            current |= (1 << v)
+    return current.bit_count(), current
+
+def max_clique_tomita(adj, N, vertices, use_translation=True):
+    """Algoritmo de Tomita para el tamaño de la clique máxima.
+    Devuelve (tamaño, bitset de la clique encontrada)."""
+    # Clique inicial greedy
+    max_size, best_clique_bits = greedy_initial_clique(adj, N, vertices)
+
+    if use_translation:
+        # Fijamos el vértice 0 (índice 0) en la clique
+        R0 = 1 << 0
+        P0 = (1 << N) - 1
+        P0 &= adj[0]          # solo vecinos de 0
+        X0 = 0
+    else:
+        R0 = 0
+        P0 = (1 << N) - 1
+        X0 = 0
+
+    # Variable para almacenar la mejor clique encontrada (como bitset)
+    # Inicialmente la mejor es la greedy
+    best_clique = best_clique_bits
+
+    def expand(R_bits, P_bits, X_bits):
+        nonlocal max_size, best_clique
+        cur_sz = R_bits.bit_count()
+        # Poda simple
+        if cur_sz + P_bits.bit_count() <= max_size:
+            return
+        if P_bits == 0 and X_bits == 0:
+            if cur_sz > max_size:
+                max_size = cur_sz
+                best_clique = R_bits
+            return
+        # Poda por coloración
+        sorted_cand, colors = greedy_color(P_bits, adj)
+        if cur_sz + colors <= max_size:
+            return
+        # Pivote: vértice en P∪X con mayor vecindario en P
+        union = P_bits | X_bits
+        best_u = -1
+        best_deg = -1
+        temp = union
+        while temp:
+            u_bit = temp & -temp
+            u = u_bit.bit_length() - 1
+            deg = (P_bits & adj[u]).bit_count()
+            if deg > best_deg:
+                best_deg = deg
+                best_u = u
+            temp ^= u_bit
+        # Candidatos = P \ N(best_u)
+        candidates = P_bits & ~adj[best_u]
+        for v in sorted_cand:
+            v_bit = 1 << v
+            if not (candidates & v_bit):
+                continue
+            expand(R_bits | v_bit,
+                   P_bits & adj[v],
+                   X_bits & adj[v])
+            P_bits &= ~v_bit
+            X_bits |= v_bit
+            if cur_sz + P_bits.bit_count() <= max_size:
+                break
+
+    expand(R0, P0, X0)
+    return max_size, best_clique
+
+def A(n, d, verbose=True):
+    """Calcula A(n,d) y devuelve (valor, código) donde código es una lista de enteros (palabras)."""
+    even_only = (d % 2 == 0)   # reducción por paridad
+    if verbose:
+        print(f"Construyendo grafo de adyacencia (distancia ≥ {d}) para n={n}...")
+    adj, N, vertices = build_adjacency_bitsets(n, d, even_only)
+    if verbose:
+        print(f"Vértices: {N} (reducción por paridad: {even_only})")
+    start = time.time()
+    size, clique_bits = max_clique_tomita(adj, N, vertices, use_translation=True)
+    elapsed = time.time() - start
+    
+    # Convertir el bitset de la clique a una lista de palabras originales
+    code = []
+    bits = clique_bits
+    while bits:
+        v = (bits & -bits).bit_length() - 1
+        code.append(vertices[v])
+        bits &= bits - 1
+    
+    # Si usamos reducción por paridad, el código obtenido es de peso par. No es necesario volver a trasladar.
+    if verbose:
+        print(f"A({n},{d}) = {size}  (tiempo: {elapsed:.2f} segundos)")
+        print("Código encontrado (palabras en decimal):")
+        print(code)
+        # Opcional: mostrar también en binario
+        # print([format(w, f'0{n}b') for w in code])
+    return size, code
+
+
+
+#Funciones que crean la grafica de Hamming en un objeto de networxk
+
+def build_hamming_graph(n: int, d: int) -> nx.Graph:
+    """
+    Construye el grafo de Hamming H(n, d):
+    - Vértices: números enteros de 0 a 2^n - 1 (representan palabras binarias)
+    - Arista entre u y v si hamming_distance(u, v) >= d
+    """
+    num_vertices = 1 << n
+    G = nx.Graph()
+    G.add_nodes_from(range(num_vertices))
+    for u in range(num_vertices):
+        for v in range(u + 1, num_vertices):
+            if hamming_distance(u, v) >= d:
+                G.add_edge(u, v)
+    return G
+
 # Heuristic Functions 
+
+def greedy_start(all_words, d):
+    """
+    Build an initial valid code using a greedy random approach.
+
+    Shuffles all candidate codewords and adds each one to the code
+    if it satisfies the minimum distance constraint with all
+    already-selected codewords.
+
+    This is used as a warm start for more sophisticated heuristics
+    such as simulated annealing.
+
+    Parameters
+    ----------
+    all_words : list of tuple of int
+        All candidate binary codewords of length n.
+    d : int
+        Minimum Hamming distance required between any two codewords.
+
+    Returns
+    -------
+    code : list of tuple of int
+        A valid code built greedily. Not guaranteed to be optimal.
+    """
+    candidates = all_words.copy()  # copy to avoid modifying the original list
+    random.shuffle(candidates)     # shuffle to get a different start each call
+    code = []                      # initialize empty code
+
+    for word in candidates:                  # iterate over shuffled candidates
+        if is_valid_set(code, word, d):      # check minimum distance constraint
+            code.append(word)                # add word if it is compatible
+
+    return code
+
+def heuristic(n, d, iterations=1000, seed=None):
+    """
+    Estimate A(n, d) — the maximum size of a binary code of length n
+    and minimum Hamming distance d — using a greedy heuristic with
+    random restarts.
+
+    The algorithm builds a valid code greedily: at each step it tries
+    to add a random codeword that satisfies the minimum distance
+    constraint with all already-selected codewords. When no more
+    codewords can be added, it records the size and restarts.
+
+    This is a heuristic, so the result is a lower bound on A(n, d).
+    It is not guaranteed to find the true optimum.
+
+    Parameters
+    ----------
+    n : int
+        Length of the binary codewords.
+    d : int
+        Minimum Hamming distance required between any two codewords.
+    iterations : int, optional
+        Number of random restarts (default is 1000).
+    seed : int or None, optional
+        Random seed for reproducibility (default is None).
+
+    Returns:
+
+    best_code : list of tuple of int
+        The largest valid code found.
+    """
+    if seed is not None:
+        random.seed(seed)
+
+    all_words = list(HammingTupla(n, d).get_instances())
+    best_code = []
+
+    bound = upper_bound(n, d)  # compute the upper bound once before the loop
+
+    for _ in range(iterations):
+        current_code = greedy_start(all_words, d)
+
+        if len(current_code) > len(best_code):
+            best_code = current_code
+
+        if len(best_code) >= bound:  # stop early if the upper bound is reached
+            break
+
+    return best_code
+
+def simulated_annealing(
+    n, d,
+    iterations=5000,
+    T_start=1.0,
+    T_end=0.01,
+    tabu_tenure=20,
+    max_perturbation=3,
+    seed=None
+):
+    """
+    Estimate A(n, d) using simulated annealing with tabu memory and
+    aggressive perturbation.
+
+    At each step, removes between 1 and max_perturbation codewords and
+    attempts to add max_perturbation + 1 new ones. Tabu memory penalizes
+    recently removed codewords, discouraging the search from revisiting
+    the same regions. Accepts worsening moves with probability e^(delta/T)
+    (Boltzmann distribution)to escape local optima.
+
+    Parameters:
+    n : int
+        Length of the binary codewords.
+    d : int
+        Minimum Hamming distance required between any two codewords.
+    iterations : int, optional
+        Number of annealing steps (default 5000).
+    T_start : float, optional
+        Initial temperature, controls early acceptance of worse solutions
+        (default 1.0).
+    T_end : float, optional
+        Final temperature, controls strictness at the end (default 0.01).
+    tabu_tenure : int, optional
+        Number of steps a removed codeword remains tabu (default 20).
+    max_perturbation : int, optional
+        Maximum number of codewords removed per perturbation (default 3).
+    seed : int or None, optional
+        Random seed for reproducibility (default None).
+
+    Returns:
+    best_code : list of tuple of int
+        The largest valid code found.
+    """
+    if seed is not None:                   # fix the random seed if provided
+        random.seed(seed)
+
+    all_words = list(HammingTupla(n, d).get_instances())  # generate all 2^n binary codewords
+    all_words_set = set(all_words)                        # set for fast membership checks
+
+    bound = upper_bound(n, d)             # compute the upper bound once before the loop
+
+    current_code = greedy_start(all_words, d)  # build a warm-start solution with greedy
+    best_code = current_code.copy()            # initialize the global best
+
+    if len(best_code) >= bound:           # if greedy already hits the bound, return immediately
+        return best_code
+
+    # --- tabu memory ---
+    # maps each codeword to the step at which its tabu tenure expires
+    # words not yet in the dict are treated as non-tabu (default expiry -1)
+    tabu_expiry = {}
+
+    # --- cooling schedule ---
+    # geometric decay: T_k = T_start * alpha^k
+    alpha = (T_end / T_start) ** (1 / iterations)
+    T = T_start
+
+    for step in range(iterations):
+
+        # choose how many codewords to remove this step (between 1 and max_perturbation)
+        k = random.randint(1, min(max_perturbation, len(current_code)))
+
+        # prefer removing non-tabu words; fall back to tabu ones if necessary
+        non_tabu = [w for w in current_code if tabu_expiry.get(w, -1) <= step]
+        tabu_in_code = [w for w in current_code if tabu_expiry.get(w, -1) > step]
+
+        if len(non_tabu) >= k:
+            words_to_remove = random.sample(non_tabu, k)   # remove from non-tabu words first
+        else:
+            words_to_remove = non_tabu + random.sample(    # fill the rest from tabu words
+                tabu_in_code, k - len(non_tabu)
+            )
+
+        removed_set = set(words_to_remove)
+        candidate = [w for w in current_code if w not in removed_set]  # build candidate without removed words
+
+        # mark removed words as tabu for the next tabu_tenure steps
+        for word in words_to_remove:
+            tabu_expiry[word] = step + tabu_tenure
+
+        # --- attempt to add k+1 new codewords ---
+        # exclude tabu words and words already in the candidate from the pool
+        outside = [
+            w for w in all_words_set - set(candidate)
+            if tabu_expiry.get(w, -1) <= step          # skip tabu words when adding
+        ]
+        random.shuffle(outside)                        # shuffle to avoid deterministic order
+
+        added = 0
+        for word in outside:
+            if added > k:                              # try to add one more than we removed
+                break
+            if is_valid_set(candidate, word, d):       # check minimum distance constraint
+                candidate.append(word)                 # add word if compatible
+                added += 1
+
+        # --- acceptance criterion ---
+        delta = len(candidate) - len(current_code)    # size difference after perturbation
+
+        if delta > 0:
+            current_code = candidate                   # always accept improvements
+        elif random.random() < math.exp(delta / T):
+            current_code = candidate                   # accept worsening with probability e^(delta/T)
+
+        # --- update global best ---
+        if len(current_code) > len(best_code):
+            best_code = current_code.copy()            # save a copy so further changes don't affect it
+
+        # --- early stopping ---
+        if len(best_code) >= bound:                    # stop if the upper bound is reached
+            break
+
+        if delta > 0:
+            T *= 0.999   # cold
+        else:
+            T *= alpha   # normal
+
+        T = max(T, T_end)  # never less than T_end
+
+    return best_code
+
