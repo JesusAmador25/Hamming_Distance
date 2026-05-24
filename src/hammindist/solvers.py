@@ -565,7 +565,7 @@ def heuristic(n, d, iterations=1000, seed=None):
     if seed is not None:
         random.seed(seed)
 
-    all_words = list(HammingTupla(n, n).get_instances())
+    all_words = list(HammingTupla(n, d).get_instances())
     best_code = []
 
     bound = upper_bound(n, d)  # compute the upper bound once before the loop
@@ -630,7 +630,7 @@ def simulated_annealing(
     if seed is not None:                   # fix the random seed if provided
         random.seed(seed)
 
-    all_words = list(HammingTupla(n, n).get_instances())  # generate all 2^n binary codewords
+    all_words = list(HammingTupla(n, d).get_instances())  # generate all 2^n binary codewords
     all_words_set = set(all_words)                        # set for fast membership checks
 
     bound = upper_bound(n, d)             # compute the upper bound once before the loop
@@ -706,7 +706,11 @@ def simulated_annealing(
         if len(best_code) >= bound:                    # stop if the upper bound is reached
             break
 
-        # --- cool down ---
-        T *= alpha                                     # reduce temperature geometrically each step
+        if delta > 0:
+            T *= 0.999   # cold
+        else:
+            T *= alpha   # normal
+
+        T = max(T, T_end)  # never less than T_end
 
     return best_code
