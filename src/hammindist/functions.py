@@ -507,6 +507,7 @@ def greedy_start(all_words, d):
 
     return code
 
+
 def heuristic(n, d, iterations=1000, seed=None):
     """
     Estimate A(n, d) — the maximum size of a binary code of length n
@@ -556,8 +557,100 @@ def heuristic(n, d, iterations=1000, seed=None):
 
     return best_code
 
+
+def select_words_to_remove(current_code, tabu_expiry, step, k):
+    """
+    Select k codewords to remove.
+
+    Priority is given to codewords that are not currently tabu.
+    If there are not enough non-tabu codewords, the remaining
+    selections are completed with tabu codewords.
+    """
+    # Codewords whose tabu period has already expired.
+    non_tabu = [
+        w for w in current_code
+        if tabu_expiry.get(w, -1) <= step
+    ]
+
+    # Codewords that are still tabu.
+    tabu_in_code = [
+        w for w in current_code
+        if tabu_expiry.get(w, -1) > step
+    ]
+
+    # If enough non-tabu codewords exist, select only from them.
+    if len(non_tabu) >= k:
+        return random.sample(non_tabu, k)
+
+    # Complete the selection using tabu codewords.
+    return non_tabu + random.sample(
+        tabu_in_code,
+        k - len(non_tabu)
+    )
+
+
+def build_outside_pool(all_words_set, candidate, tabu_expiry, step):
+    """
+    Build a pool of candidate codewords for insertion.
+
+    Only codewords that:
+    - Are not part of the current candidate solution.
+    - Are not tabu.
+
+    The resulting pool is shuffled to encourage exploration
+    of the search space.
+    """
+    pool = [
+        w for w in all_words_set - set(candidate)
+        if tabu_expiry.get(w, -1) <= step
+    ]
+
+    random.shuffle(pool)
+
+    return pool
+
+
+def try_add_codewords(candidate, pool, d, k):
+    """
+    Attempt to add up to k + 1 compatible codewords.
+
+    A codeword is added only if it preserves the required
+    minimum distance from all codewords already in the solution.
+    """
+    added = 0
+
+    for word in pool:
+        # Limit the number of insertions to control perturbation size.
+        if added > k:
+            break
+
+        # Check whether the codeword is compatible with the current solution.
+        if is_valid_set(candidate, word, d):
+            candidate.append(word)
+            added += 1
+
+    return candidate
+
+
+def accept(current_code, candidate, T):
+    """
+    Simulated annealing acceptance criterion.
+
+    - Improvements are always accepted.
+    - Worse solutions may be accepted with probability
+      exp(Δ/T), where Δ is the size difference between solutions.
+    """
+    delta = len(candidate) - len(current_code)
+
+    if delta > 0 or random.random() < math.exp(delta / T):
+        return candidate
+
+    return current_code
+
+
 def simulated_annealing(
-    n, d,
+    n,
+    d,
     iterations=5000,
     T_start=1.0,
     T_end=0.01,
@@ -566,123 +659,115 @@ def simulated_annealing(
     seed=None
 ):
     """
-    Estimate A(n, d) using simulated annealing with tabu memory and
-    aggressive perturbation.
+    Estimate A(n, d) using simulated annealing with tabu memory.
 
-    At each step, removes between 1 and max_perturbation codewords and
-    attempts to add max_perturbation + 1 new ones. Tabu memory penalizes
-    recently removed codewords, discouraging the search from revisiting
-    the same regions. Accepts worsening moves with probability e^(delta/T)
-    (Boltzmann distribution)to escape local optima.
+    At each iteration:
+    1. Remove between 1 and max_perturbation codewords.
+    2. Mark removed codewords as tabu for a fixed tenure.
+    3. Attempt to add up to max_perturbation + 1 new codewords.
+    4. Accept or reject the candidate solution according to
+       the simulated annealing criterion.
 
-    Parameters:
-    n : int
-        Length of the binary codewords.
-    d : int
-        Minimum Hamming distance required between any two codewords.
-    iterations : int, optional
-        Number of annealing steps (default 5000).
-    T_start : float, optional
-        Initial temperature, controls early acceptance of worse solutions
-        (default 1.0).
-    T_end : float, optional
-        Final temperature, controls strictness at the end (default 0.01).
-    tabu_tenure : int, optional
-        Number of steps a removed codeword remains tabu (default 20).
-    max_perturbation : int, optional
-        Maximum number of codewords removed per perturbation (default 3).
-    seed : int or None, optional
-        Random seed for reproducibility (default None).
-
-    Returns:
-    best_code : list of tuple of int
-        The largest valid code found.
+    A reheating mechanism is also applied whenever no improvement
+    is observed for an extended number of iterations.
     """
-    if seed is not None:                   # fix the random seed if provided
+    # Set random seed for reproducibility.
+    if seed is not None:
         random.seed(seed)
 
-    all_words = list(HammingTupla(n, d).get_instances())  # generate all 2^n binary codewords
-    all_words_set = set(all_words)                        # set for fast membership checks
+    # Generate all possible codewords.
+    all_words = list(HammingTupla(n, d).get_instances_complete())
+    all_words_set = set(all_words)
 
-    bound = upper_bound(n, d)             # compute the upper bound once before the loop
+    # Theoretical upper bound for A(n, d).
+    bound = upper_bound(n, d)
 
-    current_code = greedy_start(all_words, d)  # build a warm-start solution with greedy
-    best_code = current_code.copy()            # initialize the global best
+    # Generate an initial solution using a greedy heuristic.
+    current_code = greedy_start(all_words, d)
+    best_code = current_code.copy()
 
-    if len(best_code) >= bound:           # if greedy already hits the bound, return immediately
+    # Stop immediately if the upper bound is reached.
+    if len(best_code) >= bound:
         return best_code
 
-    # --- tabu memory ---
-    # maps each codeword to the step at which its tabu tenure expires
-    # words not yet in the dict are treated as non-tabu (default expiry -1)
+    # Stores the iteration at which each tabu codeword becomes available.
     tabu_expiry = {}
 
-    # --- cooling schedule ---
-    # geometric decay: T_k = T_start * alpha^k
+    # Geometric cooling factor.
     alpha = (T_end / T_start) ** (1 / iterations)
+
     T = T_start
+
+    # Counter for consecutive iterations without improvement.
+    no_improve_count = 0
+    no_improve_limit = iterations // 10
 
     for step in range(iterations):
 
-        # choose how many codewords to remove this step (between 1 and max_perturbation)
-        k = random.randint(1, min(max_perturbation, len(current_code)))
+        # Randomly choose the perturbation size.
+        k = random.randint(
+            1,
+            min(max_perturbation, len(current_code))
+        )
 
-        # prefer removing non-tabu words; fall back to tabu ones if necessary
-        non_tabu = [w for w in current_code if tabu_expiry.get(w, -1) <= step]
-        tabu_in_code = [w for w in current_code if tabu_expiry.get(w, -1) > step]
+        # Select codewords to remove from the current solution.
+        words_to_remove = select_words_to_remove(
+            current_code,
+            tabu_expiry,
+            step,
+            k
+        )
 
-        if len(non_tabu) >= k:
-            words_to_remove = random.sample(non_tabu, k)   # remove from non-tabu words first
-        else:
-            words_to_remove = non_tabu + random.sample(    # fill the rest from tabu words
-                tabu_in_code, k - len(non_tabu)
-            )
+        # Build a candidate solution without the removed codewords.
+        candidate = [
+            w for w in current_code
+            if w not in set(words_to_remove)
+        ]
 
-        removed_set = set(words_to_remove)
-        candidate = [w for w in current_code if w not in removed_set]  # build candidate without removed words
-
-        # mark removed words as tabu for the next tabu_tenure steps
+        # Mark removed codewords as tabu.
         for word in words_to_remove:
             tabu_expiry[word] = step + tabu_tenure
 
-        # --- attempt to add k+1 new codewords ---
-        # exclude tabu words and words already in the candidate from the pool
-        outside = [
-            w for w in all_words_set - set(candidate)
-            if tabu_expiry.get(w, -1) <= step          # skip tabu words when adding
-        ]
-        random.shuffle(outside)                        # shuffle to avoid deterministic order
+        # Build a pool of eligible codewords for insertion.
+        pool = build_outside_pool(
+            all_words_set,
+            candidate,
+            tabu_expiry,
+            step
+        )
 
-        added = 0
-        for word in outside:
-            if added > k:                              # try to add one more than we removed
-                break
-            if is_valid_set(candidate, word, d):       # check minimum distance constraint
-                candidate.append(word)                 # add word if compatible
-                added += 1
+        # Attempt to expand the candidate solution.
+        candidate = try_add_codewords(
+            candidate,
+            pool,
+            d,
+            k
+        )
 
-        # --- acceptance criterion ---
-        delta = len(candidate) - len(current_code)    # size difference after perturbation
+        # Apply the acceptance criterion.
+        current_code = accept(
+            current_code,
+            candidate,
+            T
+        )
 
-        if delta > 0:
-            current_code = candidate                   # always accept improvements
-        elif random.random() < math.exp(delta / T):
-            current_code = candidate                   # accept worsening with probability e^(delta/T)
-
-        # --- update global best ---
+        # Update the best solution found so far.
         if len(current_code) > len(best_code):
-            best_code = current_code.copy()            # save a copy so further changes don't affect it
+            best_code = current_code.copy()
+            no_improve_count = 0
+        else:
+            no_improve_count += 1
 
-        # --- early stopping ---
-        if len(best_code) >= bound:                    # stop if the upper bound is reached
+        # Reheat the temperature if the search stagnates.
+        if no_improve_count >= no_improve_limit:
+            T = T_start * 0.5
+            no_improve_count = 0
+
+        # Stop if the theoretical bound is reached.
+        if len(best_code) >= bound:
             break
 
-        if delta > 0:
-            T *= 0.999   # cold
-        else:
-            T *= alpha   # normal
-
-        T = max(T, T_end)  # never less than T_end
+        # Apply geometric cooling.
+        T = max(T * alpha, T_end)
 
     return best_code
-
