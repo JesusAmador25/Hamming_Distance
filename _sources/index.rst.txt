@@ -5,7 +5,7 @@ hammindist Documentation
    :maxdepth: 2
    :caption: Contents:
 
-hammindist.fuctions
+hammindist.functions
 -----------
 .. automodule:: hammindist.functions
    :members:
