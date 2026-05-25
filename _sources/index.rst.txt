@@ -5,7 +5,7 @@ hammindist Documentation
    :maxdepth: 2
    :caption: Contents:
 
-Solvers API
+hammindist.fuctions
 -----------
 .. automodule:: hammindist.functions
    :members:
