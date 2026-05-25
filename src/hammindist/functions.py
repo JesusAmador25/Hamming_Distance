@@ -423,13 +423,13 @@ def max_clique_tomita(adj, N, vertices, use_translation=True):
     """
     Tomita's algorithm for the length of maximum clique
     Args:
-        adj: Adjacency bitsets for the graph. adj[i] is an integer
+        adj (List[int]): Adjacency bitsets for the graph. adj[i] is an integer
                 where bit j indicates an edge between vertices i and j.
-        N: number of nodes in the graph
-        vertices: nodes to work
+        N (int): number of nodes in the graph
+        vertices (List[any]): nodes to work
     Returns:
-        max_size: maximun size finded
-        best_clique: the best clique that the fuction was able to build
+        max_size (int): maximun size finded
+        best_clique (List[int]): the best clique that the fuction was able to build
     """
     # started clique greedy
     max_size, best_clique_bits = greedy_initial_clique(adj, N, vertices)
@@ -498,11 +498,11 @@ def A(n, d, verbose=True):
     """
     Calculate A(n, d)
     Args:
-        n: the length of the code
-        d: the minimum distance in the final set
+        n (int): the length of the code
+        d (int): the minimum distance in the final set
     Returns:
-        size: the length of the set (number of elements)
-        code: the set with the elements at minimum distance d
+        size (int): the length of the set (number of elements)
+        code (set): the set with the elements at minimum distance d
         """
     even_only = (d % 2 == 0)   # parity reduction
     if verbose:
