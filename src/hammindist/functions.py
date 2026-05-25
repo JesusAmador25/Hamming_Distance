@@ -487,7 +487,7 @@ def build_hamming_graph(n: int, d: int) -> nx.Graph:
     G.add_nodes_from(range(num_vertices))
     for u in range(num_vertices):
         for v in range(u + 1, num_vertices):
-            if hamming_distance(u, v) >= d:
+            if binary_hamming_distance(u, v) >= d:
                 G.add_edge(u, v)
     return G
 
