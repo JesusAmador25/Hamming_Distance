@@ -7,6 +7,7 @@ import random
 import math
 import sys
 import time
+from math import comb 
 
 # Classes
 class HammingTupla:
@@ -315,8 +316,8 @@ def max_set_bounded(length, min_distance):
 
 sys.setrecursionlimit(1000000)
 
-# def hamming_distance(x: int, y: int) -> int:
-#     return (x ^ y).bit_count()
+def binary_hamming_distance(x: int, y: int) -> int:
+    return (x ^ y).bit_count()
 
 def build_adjacency_bitsets(n: int, d: int, even_only: bool = False):
     """Grafo de adyacencia: arista si distancia >= d.
@@ -328,7 +329,7 @@ def build_adjacency_bitsets(n: int, d: int, even_only: bool = False):
     adj = [0] * N
     for a in range(N):
         for b in range(a + 1, N):
-            if hamming_distance(vertices[a], vertices[b]) >= d:
+            if binary_hamming_distance(vertices[a], vertices[b]) >= d:
                 adj[a] |= (1 << b)
                 adj[b] |= (1 << a)
     return adj, N, vertices
