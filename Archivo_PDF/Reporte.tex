@@ -1,0 +1,191 @@
+\documentclass[12pt, spanish]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{parskip}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily\small,breaklines=true,numbers=left}
+
+\title{Estudio Computacional de $A(n,d)$: \\ Implementación, Cotas y Reproducibilidad}
+\author{Amador Jesús, Hernández Roberto, Hernández Belinda, Ramos Sarai}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+El número $A(n,d)$ es el máximo tamaño de un código binario de longitud $n$ y distancia de Hamming mayor o igual a $d$ este es un problema central en teoría de códigos. Su naturaleza $\mathcal{NP}$-completa obliga a combinar algoritmos exactos, heurísticos y cotas teóricas. En este trabajo presentamos una implementación modular en Python que incluye: generación del grafo de Hamming, algoritmo de Tomita para cliques máximas, cotas de Hamming, Singleton, Plotkin y Gilbert–Varshamov, así como heurísticas como lo son búsqueda local y recocido simulado. Discutimos los desafíos de replicabilidad computacional y la importancia de alojar estos códigos en repositorios públicos, destacando nuestro progreso desde enfoques iniciales de backtracking hasta la adopción de métodos heurísticos para valores grandes de $n$.
+\end{abstract}
+
+\section{Introducción}
+Un código binario $C\subseteq\mathbb{F}_2^n$ tiene distancia mínima $d$ si para todo $x\neq y\in C$, $d_H(x,y)\ge d$. El parámetro $A(n,d)$ es la máxima cardinalidad de un tal código. Su determinación es fundamental para el diseño de sistemas de comunicación tolerantes a errores. Dado que el problema es $\mathcal{NP}$-duro, no existe una fórmula cerrada. Para $n\le 10$ se conocen valores exactos gracias a tablas clásicas \cite{best1978,agrell2001,brouwer2018}, pero la replicación de esos resultados computacionalmente es un reto debido a la explosión combinatoria y a la falta de código abierto.
+
+En nuestro proyecto hemos desarrollado una librería Python (\texttt{hammindist.functions}) que implementa:
+\begin{itemize}
+\item Generación del grafo de Hamming usando bitsets.
+\item Algoritmo exacto de Tomita para la clique máxima (con poda por coloración y reducción por paridad).
+\item Cotas superiores (Hamming, Singleton, Plotkin) y la cota inferior existencial de Gilbert–Varshamov.
+\item Heurísticas para $n>10$: búsqueda local greedy con reinicios aleatorios y recocido simulado con memoria tabú.
+\end{itemize}
+Todo el código está disponible en un repositorio GitHub para garantizar la reproducibilidad.
+
+\section{Marco Teórico}
+\subsection{Reducción a clique máxima}
+Definimos el grafo de Hamming $H(n,d)=(V,E)$ con $V=\mathbb{F}_2^n$ y $\{u,v\}\in E$ si $d_H(u,v)\ge d$. Un código válido es una clique en $H(n,d)$, por tanto
+\[
+A(n,d)=\omega(H(n,d)),
+\]
+donde $\omega(G)$ es el tamaño de la clique máxima. Esta reformulación permite usar algoritmos estándar de teoría de graficas.
+
+\subsection{Cotas superiores e inferiores}
+Las siguientes cotas son fundamentales en nuestro paquete.
+
+\begin{itemize}
+\item \textbf{Cota de Hamming (esferas)}:  
+  Sea $t=\lfloor (d-1)/2\rfloor$. Las bolas de radio $t$ centradas en los codewords son disjuntas, luego
+  \[
+  A(n,d)\le \frac{2^n}{\sum_{i=0}^{t}\binom{n}{i}}.
+  \]
+  \textit{Demostración:} Si $x\in B(c,t)\cap B(c',t)$ con $c\neq c'$, entonces $d_H(c,c')\le 2t<d$, contradicción. El volumen de cada bola es $\sum_{i=0}^t\binom{n}{i}$, y todas caben en $\mathbb{F}_2^n$, luego $M\cdot\sum_{i=0}^t\binom{n}{i}\le 2^n$.
+
+\item \textbf{Cota de Singleton}:  
+  Proyectando las primeras $n-d+1$ coordenadas, dos palabras con igual proyección diferirían sólo en las últimas $d-1$ coordenadas, luego $d_H\le d-1$, imposible. Por tanto la proyección es inyectiva y $A(n,d)\le 2^{n-d+1}$.
+
+\item \textbf{Cota de Plotkin}:  
+  Si $2d>n$, entonces $A(n,d)\le \left\lfloor\frac{2d}{2d-n}\right\rfloor$.  
+  \textit{Demostración (esbozo):} Contando la suma $S$ de distancias por pares: por un lado $S\ge \binom{M}{2}d$; por otro, cada coordenada contribuye $n_k(M-n_k)\le M^2/4$, luego $S\le nM^2/4$. Igualando se obtiene $(2d-n)M\le 2d$, de donde la cota.
+
+\item \textbf{Cota de Gilbert–Varshamov (existencial)}:  
+  Existe un código de tamaño al menos $\frac{2^n}{\sum_{i=0}^{d-1}\binom{n}{i}}$.  
+  \textit{Demostración (constructiva):} Algoritmo greedy: añadir palabras mientras sea posible. Al terminar, cada palabra no usada está a distancia $\le d-1$ de alguna ya elegida, luego las bolas de radio $d-1$ cubren $\mathbb{F}_2^n$; tomando cardinalidades se obtiene la cota.
+\end{itemize}
+
+Nuestra función \texttt{upper\_bound} devuelve el mínimo entre las cotas de Hamming y Plotkin, y \texttt{sphere\_packing\_bound}, \texttt{plotkin\_bound} implementan cada una respectivamente.
+
+\section{Implementación Computacional}
+\subsection{Generación del grafo y bitsets}
+La función \texttt{build\_adjacency\_bitsets(n,d,even\_only)} construye la matriz de adyacencia como una lista de enteros donde el bit $j$ de \texttt{adj[i]} indica si el vértice $i$ es adyacente a $j$. Usamos representación binaria directa: cada palabra es un entero de $0$ a $2^n-1$. La distancia de Hamming se calcula con \texttt{(x\^{}y).bit\_count()}. Para $d$ par, la opción \texttt{even\_only=True} reduce el número de vértices a la mitad (solo palabras de peso par), acelerando drásticamente la búsqueda.
+
+\subsection{Algoritmo de Tomita para clique máxima}
+La función \texttt{max\_clique\_tomita} implementa el algoritmo de Östergård\cite{ostergard2002} (versión de Tomita) con poda por coloración greedy. Mantiene tres conjuntos $R$ (clique actual), $P$ (candidatos) y $X$ (prohibidos). En cada paso:
+\begin{itemize}
+\item Si $|R|+|P|\le \text{max\_size}$ se poda.
+\item Se colorea $P$ de forma greedy (función \texttt{greedy\_color}) y se obtiene una cota superior; si $|R|+\text{colores}\le\text{max\_size}$ se poda.
+\item Se elige un pivote en $P\cup X$ que maximice $|P\cap N(u)|$ y se itera sobre $P\setminus N(\text{pivote})$.
+\end{itemize}
+Tras la búsqueda, la función devuelve el tamaño y la clique encontrada.
+
+\subsection{Heurísticas para $n$ grande}
+Para $n>10$, el algoritmo exacto es inviable. Desarrollamos dos heurísticas:
+\begin{itemize}
+\item \textbf{Búsqueda local greedy con reinicios}: \texttt{greedy\_start} baraja aleatoriamente las palabras y las añade si son compatibles; se repite un número de iteraciones (por defecto 1000). La mejor solución se guarda como cota inferior.
+\item \textbf{Recocido simulado con memoria tabú}: \texttt{simulated\_annealing} realiza perturbaciones (elimina entre 1 y 3 palabras e intenta añadir una más), acepta soluciones peores con probabilidad $e^{\Delta/T}$, y mantiene una lista tabú para evitar ciclos. La temperatura se enfría geométricamente.
+\end{itemize}
+Estas heurísticas permiten obtener cotas inferiores competitivas para $n=12,13,\dots$ y son modulares para futuras mejoras.
+
+\section{Resultados y Discusión}
+Validamos nuestro algoritmo exacto con valores conocidos (Cuadro 1).
+
+\begin{table}
+\centering
+\caption{Cotas superiores e inferiores para $A(n,d)$ (valores seleccionados)}
+\label{tab:binary_bounds}
+\small
+\begin{tabular}{c|cccccc}
+\toprule
+$n$ & $d=4$ & $d=6$ & $d=8$ & $d=10$ & $d=12$ \\
+\midrule
+6  & 4 & 2 & 1 & 1 & 1 \\
+7  & 8 & 2 & 1 & 1 & 1 \\
+8  & 16 & 2 & 2 & 1 & 1 \\
+9  & 20 & 4 & 2 & 1 & 1 \\
+10 & 40 & 6 & 2 & 2 & 1 \\
+11 & 72 & 12 & 2 & 2 & 1 \\
+12 & 144 & 24 & 4 & 2 & 2 \\
+13 & 256 & 32 & 4 & 2 & 2 \\
+14 & 512 & 64 & 8 & 2 & 2 \\
+15 & 1024 & 128 & 16 & 4 & 2 \\
+16 & 2048 & 256 & 32 & 4 & 2 \\
+17 & 2816--3276 & 258--340 & 36 & 6 & 2 \\
+18 & 5632--6552 & 512--673 & 64 & 10 & 4 \\
+19 & 10496--13104 & 1024--1237 & 128 & 20 & 4 \\
+20 & 20480--26168 & 2048--2279 & 256 & 40 & 6 \\
+\bottomrule
+\end{tabular}
+\smallskip
+\parbox{0.9\linewidth}{\small Fuentes: [1,2,3]. Para $n>20$, consultar referencias originales.}
+\end{table}
+
+Para valores de n $\leq$ 8 y d $\geq$ 4 el algoritmo de busqueda de clanes obtiene de forma razonable los resultados, sin embargo para valores como A(8,3)=A(9,4) o A(10,4) este resulta inviable pues tarda dias ejecutando el codigo sin resultados, por lo que, mediante el uso de valores conocidos de A(n,d) obtamos por utilizar un enfoque heuristico para abordar el problema. 
+
+Un aspecto crítico que hemos observado es la \textbf{dificultad de replicar resultados computacionales} publicados en la literatura. Muchas tablas de $A(n,d)$ se obtuvieron con algoritmos no disponibles públicamente, con parámetros de poda o heurísticas no documentadas. Por ello, consideramos esencial alojar nuestro código en un repositorio GitHub (url: \url{https://github.com/JesusAmador25/hammindist}) junto con instrucciones claras para su instalación y ejecución. Esto no solo garantiza la transparencia de nuestros propios resultados, sino que permite a otros investigadores verificar, extender o aplicar nuestras funciones.
+
+\section{Conclusión y Trabajo Futuro}
+Hemos desarrollado una herramienta computacional completa para estimar $A(n,d)$ que combina algoritmos exactos (Tomita) con heurísticas y cotas teóricas. El paquete está documentado y es reproducible. Como trabajo futuro, planeamos:
+\begin{itemize}
+\item Incorporar la cota de Delsarte mediante programación lineal.
+\item Paralelizar el algoritmo de Tomita usando múltiples núcleos.
+\item Extender el estudio a códigos no binarios y a otras métricas.
+\end{itemize}
+Todo el código y el presente reporte se encuentran en el repositorio, fomentando la colaboración y la reproducibilidad en matemática computacional.
+
+\begin{thebibliography}{99}
+
+\bibitem{best1978}
+M. R. Best, A. E. Brouwer, F. J. MacWilliams, A. M. Odlyzko, N. J. A. Sloane.
+\newblock Bounds for binary codes of length less than 25.
+\newblock \textit{IEEE Transactions on Information Theory}, 24(1):81–93, 1978.
+
+\bibitem{agrell2001}
+E. Agrell, A. Vardy, K. Zeger.
+\newblock A table of upper bounds for binary codes.
+\newblock \textit{IEEE Transactions on Information Theory}, 47(7):3004–3006, 2001.
+
+\bibitem{brouwer2018}
+A. E. Brouwer.
+\newblock Bounds for binary codes.
+\newblock Tablas en línea: \url{https://www.win.tue.nl/~aeb/codes/binary-1.html}, 2018.
+
+\bibitem{macwilliams1977}
+F. J. MacWilliams, N. J. A. Sloane.
+\newblock \textit{The Theory of Error-Correcting Codes}.
+\newblock North-Holland, Amsterdam, 1977.
+
+\bibitem{delsarte1973}
+P. Delsarte.
+\newblock An algebraic approach to the association schemes of coding theory.
+\newblock \textit{Philips Research Reports Supplements}, No. 10, 1973.
+
+\bibitem{schrijver2005}
+A. Schrijver.
+\newblock New code upper bounds from the Terwilliger algebra and semidefinite programming.
+\newblock \textit{IEEE Transactions on Information Theory}, 51(8):2859–2866, 2005.
+
+\bibitem{bron1973}
+C. Bron, J. Kerbosch.
+\newblock Algorithm 457: Finding All Cliques of an Undirected Graph.
+\newblock \textit{Communications of the ACM}, 16(9):575–577, 1973.
+
+\bibitem{tomita2006}
+E. Tomita, A. Tanaka, H. Takahashi.
+\newblock The worst-case time complexity for generating all maximal cliques.
+\newblock \textit{Theoretical Computer Science}, 363(3):260–267, 2006.
+
+\bibitem{ostergard2002}
+P. R. J. Östergård.
+\newblock A fast algorithm for the maximum clique problem.
+\newblock \textit{Discrete Applied Mathematics}, 120(1-3):197–207, 2002.
+
+\bibitem{sagemath}
+Sage Developers.
+\newblock \textit{SageMath Documentation: Coding Theory}.
+\newblock \url{https://doc.sagemath.org/html/en/reference/coding/}, 2024.
+
+\end{thebibliography}
+\end{document}
