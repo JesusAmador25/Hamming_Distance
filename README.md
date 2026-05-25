@@ -60,7 +60,30 @@ This project provides a verified, self‑contained computation of these maxima u
 
 ## Installation
 
-**... coming soon ...** 
+You can install the package directly from GitHub using pip. In a Python notebook or terminal:
+```
+pip install git+https://github.com/JesusAmador25/hammindist
+```
+If you are using Jupyter or Colab, use:
+```python
+!pip install git+https://github.com/JesusAmador25/hammindist
+```
+
+### Importing the package
+After the installation import the functions module using:
+```python
+import hammindist.functions as hd
+```
+
+now you can use all the fuctions in the package, to see all available functions use 
+`print(dir(hd))` and if you need to get help with a specific function (for example 
+`hamming_distance`):
+```python
+help(hd.hamming_distance)
+#or
+?hd.hamming_distance
+```
+
 
 ---
 
