@@ -6,30 +6,7 @@ This module tests all classes and functions defined in functions.py.
 
 import unittest
 import random
-from functions import (
-    HammingTupla,
-    is_valid_set,
-    sphere_packing_bound,
-    plotkin_bound,
-    upper_bound,
-    max_set,
-    max_set_bounded,
-    binary_hamming_distance,
-    build_adjacency_bitsets,
-    greedy_color,
-    greedy_initial_clique,
-    max_clique_tomita,
-    A,
-    greedy_start,
-    heuristic,
-    select_words_to_remove,
-    build_outside_pool,
-    try_add_codewords,
-    accept,
-    simulated_annealing
-)
-
-
+from hammindist.functions import*
 class TestHammingTupla(unittest.TestCase):
     """Test cases for the HammingTupla class."""
 
