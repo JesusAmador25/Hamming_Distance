@@ -133,25 +133,6 @@ class HammingTupla:
 
 # Bactracking functions
 
-def hamming_distance(X, Y):
-    """
-    Calculate the distance between two elements with the same length
-    Arg:
-        X (List[any]): a string, an array or a tuple of 0's and 1's with length n
-        Y (List[any]): a string, an array or a tuple of 0's and 1's with length n
-    Returns:
-        d (int): a integer value non negative
-    """
-    if len(X) != len(Y):
-        return "WARNING: the strings or arrays must have the same length"
-    X_unpacked = [str(x) for x in [*X]]
-    Y_unpacked = [str(y) for y in [*Y]]
-    d = 0  # lets count the amount of characters that are different beetwen X and Y
-    for x, y in zip(X_unpacked, Y_unpacked):
-        if x != y:
-            d += 1
-    return d
-
 def is_valid_set(candidate_set, new_code, min_distance):
     """
     Valid if a candidate_set is a valid set, it means that the elements of the set
@@ -594,7 +575,7 @@ def heuristic(n, d, iterations=1000, seed=None):
     if seed is not None:
         random.seed(seed)
 
-    all_words = list(HammingTupla(n, d).get_instances())
+    all_words = list(HammingTupla(n, d).get_instances_complete())
     best_code = []
 
     bound = upper_bound(n, d)  # compute the upper bound once before the loop
