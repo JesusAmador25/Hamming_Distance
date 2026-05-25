@@ -6,3 +6,4 @@ dist/
 build/
 *.egg-info/
 cliquer-1.21/
+.venv/
