@@ -17,11 +17,11 @@ class HammingTupla:
 
     Attributes
     ----------
-    lenght : int
+    lenght (int):
         The lenght of the binary tuples.
-    distance : int
+    distance (int):
         The maximum number of 1s (Hamming weight) allowed in each tuple.
-    graph : networkx.Graph
+    graph (networkx.Graph):
         The graph representation of the Hamming tuples, where nodes are tuples
         and edges connect tuples with Hamming distance 1.
     """
@@ -29,11 +29,10 @@ class HammingTupla:
         """
         Initialize a HammingTupla instance.
 
-        Parameters
-        ----------
-        lenght : int
+        Args:
+        lenght (int):
             The lenght of the binary tuples.
-        distance : int
+        distance (int):
             The maximum number of 1s allowed in each tuple.
         """
         self.lenght = lenght
@@ -44,8 +43,7 @@ class HammingTupla:
         """
         Return a string representation of the object.
 
-        Returns
-        -------
+        Returns:
         str
             A string describing the instance.
         """
@@ -76,8 +74,7 @@ class HammingTupla:
         """
         Return all generated tuples as a list.
 
-        Returns
-        -------
+        Returns:
         list of tuple of int
             A list containing all generated binary tuples.
         """
@@ -88,10 +85,10 @@ class HammingTupla:
         """
         Calculate the distance between two elements with the same lenght
         Arg:
-            X: a string, an array or a tuple of 0's and 1's with lenght n
-            Y: a string, an array or a tuple of 0's and 1's with lenght n
+            X (List[any]): a string, an array or a tuple of 0's and 1's with lenght n
+            Y (List[any]): a string, an array or a tuple of 0's and 1's with lenght n
         Returns:
-            d: a integer value non negative
+            d (int): a integer value non negative
         """
         if len(X) != len(Y):
             return "WARNING: the strings or arrays must have the same lenght"
@@ -140,10 +137,10 @@ def hamming_distance(X, Y):
     """
     Calculate the distance between two elements with the same length
     Arg:
-        X: a string, an array or a tuple of 0's and 1's with length n
-        Y: a string, an array or a tuple of 0's and 1's with length n
+        X (List[any]): a string, an array or a tuple of 0's and 1's with length n
+        Y (List[any]): a string, an array or a tuple of 0's and 1's with length n
     Returns:
-        d: a integer value non negative
+        d (int): a integer value non negative
     """
     if len(X) != len(Y):
         return "WARNING: the strings or arrays must have the same length"
@@ -160,13 +157,13 @@ def is_valid_set(candidate_set, new_code, min_distance):
     Valid if a candidate_set is a valid set, it means that the elements of the set
     are at least the required distance apart
     Args:
-        candidate_set: a set of codes with min_distance between them
-        new_code: a code that will be added to the set if it has min_distance with all
+        candidate_set (set): a set of codes with min_distance between them
+        new_code (List[any]): a code that will be added to the set if it has min_distance with all
             the elements of th candidate_set
-        min_distance: the minimum distance that must havee the all elements of the set
+        min_distance (int): the minimum distance that must havee the all elements of the set
             with the new code
     Returns:
-        boolean: True if the set is valid, False if the set is not valid
+        bool: True if the set is valid, False if the set is not valid
     """
     for existing in candidate_set:
         distance = hamming_distance(new_code, existing)
@@ -240,10 +237,10 @@ def max_set(codes_list, min_distance):
     """
     Build the set C wich contains all the strings that are a distance d between them
     Args:
-        codes_list: the strings, arrays or tuples that we want to know if are in the "best_set"
-        min_distance: the distance that must have the elements of the "best_set"
+        codes_list (List[any]): the strings, arrays or tuples that we want to know if are in the "best_set"
+        min_distance (int): the distance that must have the elements of the "best_set"
     Returns:
-        best_set: the set of strings with min_distance between them
+        best_set (set): the set of strings with min_distance between them
     """
     codes_list = sorted(set(codes_list))
     n = len(codes_list)
@@ -271,10 +268,10 @@ def max_set_bounded(length, min_distance):
     Build the set C wich contains all the strings that are a distance d between
     them using a upper bound
     Args:
-        codes_list: the strings, arrays or tuples that we want to know if are in the "best_set"
-        min_distance: the distance that must have the elements of the "best_set"
+        codes_list (List[any]): the strings, arrays or tuples that we want to know if are in the "best_set"
+        min_distance (int): the distance that must have the elements of the "best_set"
     Returns:
-        best_set: the set of strings with min_distance between them
+        best_set (set): the set of strings with min_distance between them
     """
     code = HammingTupla(length, min_distance)
     codes_list = code.as_list()
@@ -319,17 +316,17 @@ def build_adjacency_bitsets(n: int, d: int, even_only: bool = False):
     Build an adjacency bitset representation of a graph where vertices are binary strings
     of length n, and edges connect vertices whose Hamming distance is at least d.
     Args:
-        n: Length of binary strings (number of bits).
-        d: Minimum Hamming distance required for an edge between vertices.
+        n (int): Length of binary strings (number of bits).
+        d (int): Minimum Hamming distance required for an edge between vertices.
         even_only: If True, only include vertices with even parity
                   (even number of 1-bits). Defaults to False.
 
     Returns:
-        adj: Adjacency list as bitsets. adj[i] is an integer whose
+        adj (List[int]) : Adjacency list as bitsets. adj[i] is an integer whose
             j-th bit (from LSB) indicates if vertex i is connected to vertex j.
             Only bits for j > i are stored (lower triangular representation).
-        N: Number of vertices in the graph.
-        vertices: List of vertex values (integers) in the same order
+        N (int): Number of vertices in the graph.
+        vertices (List[int]): List of vertex values (integers) in the same order
             as their indices in the adjacency list.
     """
     total = 1 << n
@@ -355,16 +352,16 @@ def greedy_color(P_bits, adj):
     degree first).
     
     Args:
-        P_bits: Bitset representing the set of vertices to include in the
+        P_bits (int): Bitset representing the set of vertices to include in the
                      subgraph. Bit i is set if vertex i is present.
-        adj: Adjacency bitsets for the full graph. adj[i] is an
+        adj (List[int]): Adjacency bitsets for the full graph. adj[i] is an
                         integer where bit j indicates an edge between vertices
                         i and j (assuming j > i for upper triangular storage).
     
     Returns:
-        sorted_verts: List of vertices sorted by color in
+        sorted_verts (List[int]): List of vertices sorted by color in
               descending order (vertices with higher color numbers first).
-        num_colors: Number of colors used in the coloring.
+        num_colors (int): Number of colors used in the coloring.
     """
     verts = []
     bits = P_bits
