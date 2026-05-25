@@ -87,12 +87,6 @@ help(hd.hamming_distance)
 
 ---
 
-## Functions 
-
-**... coming soon ...** 
-
----
-
 ## Team
 
 <table align="center" width= 100% >
