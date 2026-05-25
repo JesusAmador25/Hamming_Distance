@@ -255,7 +255,7 @@ def max_set_bounded(length, min_distance):
         best_set (set): the set of strings with min_distance between them
     """
     code = HammingTupla(length, min_distance)
-    codes_list = code.as_list()
+    codes_list = list(code.get_instances_complete())
     best_set = []
 
     u_bound = upper_bound(length, min_distance)
