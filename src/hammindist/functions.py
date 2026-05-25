@@ -17,11 +17,11 @@ class HammingTupla:
 
     Attributes
     ----------
-    lenght : int
+    lenght (int):
         The lenght of the binary tuples.
-    distance : int
+    distance (int):
         The maximum number of 1s (Hamming weight) allowed in each tuple.
-    graph : networkx.Graph
+    graph (networkx.Graph):
         The graph representation of the Hamming tuples, where nodes are tuples
         and edges connect tuples with Hamming distance 1.
     """
@@ -29,11 +29,10 @@ class HammingTupla:
         """
         Initialize a HammingTupla instance.
 
-        Parameters
-        ----------
-        lenght : int
+        Args:
+        lenght (int):
             The lenght of the binary tuples.
-        distance : int
+        distance (int):
             The maximum number of 1s allowed in each tuple.
         """
         self.lenght = lenght
@@ -44,8 +43,7 @@ class HammingTupla:
         """
         Return a string representation of the object.
 
-        Returns
-        -------
+        Returns:
         str
             A string describing the instance.
         """
@@ -76,8 +74,7 @@ class HammingTupla:
         """
         Return all generated tuples as a list.
 
-        Returns
-        -------
+        Returns:
         list of tuple of int
             A list containing all generated binary tuples.
         """
@@ -88,10 +85,10 @@ class HammingTupla:
         """
         Calculate the distance between two elements with the same lenght
         Arg:
-            X: a string, an array or a tuple of 0's and 1's with lenght n
-            Y: a string, an array or a tuple of 0's and 1's with lenght n
+            X (List[any]): a string, an array or a tuple of 0's and 1's with lenght n
+            Y (List[any]): a string, an array or a tuple of 0's and 1's with lenght n
         Returns:
-            d: a integer value non negative
+            d (int): a integer value non negative
         """
         if len(X) != len(Y):
             return "WARNING: the strings or arrays must have the same lenght"
@@ -140,10 +137,10 @@ def hamming_distance(X, Y):
     """
     Calculate the distance between two elements with the same length
     Arg:
-        X: a string, an array or a tuple of 0's and 1's with length n
-        Y: a string, an array or a tuple of 0's and 1's with length n
+        X (List[any]): a string, an array or a tuple of 0's and 1's with length n
+        Y (List[any]): a string, an array or a tuple of 0's and 1's with length n
     Returns:
-        d: a integer value non negative
+        d (int): a integer value non negative
     """
     if len(X) != len(Y):
         return "WARNING: the strings or arrays must have the same length"
@@ -160,13 +157,13 @@ def is_valid_set(candidate_set, new_code, min_distance):
     Valid if a candidate_set is a valid set, it means that the elements of the set
     are at least the required distance apart
     Args:
-        candidate_set: a set of codes with min_distance between them
-        new_code: a code that will be added to the set if it has min_distance with all
+        candidate_set (set): a set of codes with min_distance between them
+        new_code (List[any]): a code that will be added to the set if it has min_distance with all
             the elements of th candidate_set
-        min_distance: the minimum distance that must havee the all elements of the set
+        min_distance (int): the minimum distance that must havee the all elements of the set
             with the new code
     Returns:
-        boolean: True if the set is valid, False if the set is not valid
+        bool: True if the set is valid, False if the set is not valid
     """
     for existing in candidate_set:
         distance = hamming_distance(new_code, existing)
@@ -240,10 +237,10 @@ def max_set(codes_list, min_distance):
     """
     Build the set C wich contains all the strings that are a distance d between them
     Args:
-        codes_list: the strings, arrays or tuples that we want to know if are in the "best_set"
-        min_distance: the distance that must have the elements of the "best_set"
+        codes_list (List[any]): the strings, arrays or tuples that we want to know if are in the "best_set"
+        min_distance (int): the distance that must have the elements of the "best_set"
     Returns:
-        best_set: the set of strings with min_distance between them
+        best_set (set): the set of strings with min_distance between them
     """
     codes_list = sorted(set(codes_list))
     n = len(codes_list)
@@ -271,10 +268,10 @@ def max_set_bounded(length, min_distance):
     Build the set C wich contains all the strings that are a distance d between
     them using a upper bound
     Args:
-        codes_list: the strings, arrays or tuples that we want to know if are in the "best_set"
-        min_distance: the distance that must have the elements of the "best_set"
+        codes_list (List[any]): the strings, arrays or tuples that we want to know if are in the "best_set"
+        min_distance (int): the distance that must have the elements of the "best_set"
     Returns:
-        best_set: the set of strings with min_distance between them
+        best_set (set): the set of strings with min_distance between them
     """
     code = HammingTupla(length, min_distance)
     codes_list = code.as_list()
@@ -319,17 +316,17 @@ def build_adjacency_bitsets(n: int, d: int, even_only: bool = False):
     Build an adjacency bitset representation of a graph where vertices are binary strings
     of length n, and edges connect vertices whose Hamming distance is at least d.
     Args:
-        n: Length of binary strings (number of bits).
-        d: Minimum Hamming distance required for an edge between vertices.
+        n (int): Length of binary strings (number of bits).
+        d (int): Minimum Hamming distance required for an edge between vertices.
         even_only: If True, only include vertices with even parity
                   (even number of 1-bits). Defaults to False.
 
     Returns:
-        adj: Adjacency list as bitsets. adj[i] is an integer whose
+        adj (List[int]) : Adjacency list as bitsets. adj[i] is an integer whose
             j-th bit (from LSB) indicates if vertex i is connected to vertex j.
             Only bits for j > i are stored (lower triangular representation).
-        N: Number of vertices in the graph.
-        vertices: List of vertex values (integers) in the same order
+        N (int): Number of vertices in the graph.
+        vertices (List[int]): List of vertex values (integers) in the same order
             as their indices in the adjacency list.
     """
     total = 1 << n
@@ -355,16 +352,16 @@ def greedy_color(P_bits, adj):
     degree first).
     
     Args:
-        P_bits: Bitset representing the set of vertices to include in the
+        P_bits (int): Bitset representing the set of vertices to include in the
                      subgraph. Bit i is set if vertex i is present.
-        adj: Adjacency bitsets for the full graph. adj[i] is an
+        adj (List[int]): Adjacency bitsets for the full graph. adj[i] is an
                         integer where bit j indicates an edge between vertices
                         i and j (assuming j > i for upper triangular storage).
     
     Returns:
-        sorted_verts: List of vertices sorted by color in
+        sorted_verts (List[int]): List of vertices sorted by color in
               descending order (vertices with higher color numbers first).
-        num_colors: Number of colors used in the coloring.
+        num_colors (int): Number of colors used in the coloring.
     """
     verts = []
     bits = P_bits
@@ -426,13 +423,13 @@ def max_clique_tomita(adj, N, vertices, use_translation=True):
     """
     Tomita's algorithm for the length of maximum clique
     Args:
-        adj: Adjacency bitsets for the graph. adj[i] is an integer
+        adj (List[int]): Adjacency bitsets for the graph. adj[i] is an integer
                 where bit j indicates an edge between vertices i and j.
-        N: number of nodes in the graph
-        vertices: nodes to work
+        N (int): number of nodes in the graph
+        vertices (List[any]): nodes to work
     Returns:
-        max_size: maximun size finded
-        best_clique: the best clique that the fuction was able to build
+        max_size (int): maximun size finded
+        best_clique (List[int]): the best clique that the fuction was able to build
     """
     # started clique greedy
     max_size, best_clique_bits = greedy_initial_clique(adj, N, vertices)
@@ -501,11 +498,11 @@ def A(n, d, verbose=True):
     """
     Calculate A(n, d)
     Args:
-        n: the length of the code
-        d: the minimum distance in the final set
+        n (int): the length of the code
+        d (int): the minimum distance in the final set
     Returns:
-        size: the length of the set (number of elements)
-        code: the set with the elements at minimum distance d
+        size (int): the length of the set (number of elements)
+        code (set): the set with the elements at minimum distance d
         """
     even_only = (d % 2 == 0)   # parity reduction
     if verbose:
@@ -544,16 +541,14 @@ def greedy_start(all_words, d):
     This is used as a warm start for more sophisticated heuristics
     such as simulated annealing.
 
-    Parameters
-    ----------
-    all_words : list of tuple of int
+    Args:
+    all_words (List[int])
         All candidate binary codewords of length n.
-    d : int
+    d (int):
         Minimum Hamming distance required between any two codewords.
 
-    Returns
-    -------
-    code : list of tuple of int
+    Returns:
+    code (List[int]):
         A valid code built greedily. Not guaranteed to be optimal.
     """
     candidates = all_words.copy()  # copy to avoid modifying the original list
@@ -581,20 +576,19 @@ def heuristic(n, d, iterations=1000, seed=None):
     This is a heuristic, so the result is a lower bound on A(n, d).
     It is not guaranteed to find the true optimum.
 
-    Parameters
-    ----------
-    n : int
+    Args:
+    n (int):
         Length of the binary codewords.
-    d : int
+    d (int):
         Minimum Hamming distance required between any two codewords.
     iterations : int, optional
         Number of random restarts (default is 1000).
-    seed : int or None, optional
+    seed (int or None)
         Random seed for reproducibility (default is None).
 
     Returns:
 
-    best_code : list of tuple of int
+    best_code (List[int]):
         The largest valid code found.
     """
     if seed is not None:
@@ -624,6 +618,22 @@ def select_words_to_remove(current_code, tabu_expiry, step, k):
     Priority is given to codewords that are not currently tabu.
     If there are not enough non-tabu codewords, the remaining
     selections are completed with tabu codewords.
+    Args:
+        current_code (List[Any]): List of codewords currently in the code.
+                                  Each codeword is typically an integer
+                                  representing a binary string.
+        tabu_expiry (Dict[Any, int]): Dictionary mapping codewords to the
+                                     step number when their tabu status expires.
+                                     A codeword is considered tabu if its expiry
+                                     step is greater than the current step.
+        step (int): Current iteration step number. Used to determine which
+                   codewords have expired tabu status.
+        k (int): Number of codewords to select for removal.
+    
+    Returns:
+        List[Any]: A list of k codewords selected for removal. The selection
+                  prioritizes non-tabu codewords, but may include tabu
+                  codewords if necessary to reach k selections.
     """
     # Codewords whose tabu period has already expired.
     non_tabu = [
@@ -658,6 +668,23 @@ def build_outside_pool(all_words_set, candidate, tabu_expiry, step):
 
     The resulting pool is shuffled to encourage exploration
     of the search space.
+
+    Args:
+        all_words_set (Set[int]): Set of all possible codewords in the
+                                 search space (e.g., all binary strings
+                                 of length n that satisfy constraints).
+        candidate (List[int]): Current candidate solution containing
+                              codewords already selected.
+        tabu_expiry (Dict[int, int]): Dictionary mapping codewords to the
+                                     step number when their tabu status
+                                     expires. A codeword is considered
+                                     tabu if its expiry step > current step.
+        step (int): Current iteration step number. Used to determine
+                   which codewords have expired tabu status.
+
+    Returns:
+        List[int]: A shuffled list of codewords eligible for insertion.
+                  Returns an empty list if no eligible codewords exist.
     """
     pool = [
         w for w in all_words_set - set(candidate)
@@ -675,6 +702,22 @@ def try_add_codewords(candidate, pool, d, k):
 
     A codeword is added only if it preserves the required
     minimum distance from all codewords already in the solution.
+    Args:
+        candidate (List[int]): Current solution list of codewords already
+                              selected. This list will be modified in-place.
+        pool (List[int]): List of available codewords to consider adding.
+                         These are typically from a neighborhood or
+                         perturbation operation.
+        d (int): Required minimum Hamming distance. Any new codeword must
+                have distance at least d from all codewords already in
+                the candidate solution.
+        k (int): Maximum number of codewords to add beyond the first one.
+                The function will add at most k+1 codewords total.
+    
+    Returns:
+        List[int]: The modified candidate solution list (same list object
+                  as the input, modified in-place) with newly added
+                  compatible codewords appended.
     """
     added = 0
 
@@ -698,6 +741,23 @@ def accept(current_code, candidate, T):
     - Improvements are always accepted.
     - Worse solutions may be accepted with probability
       exp(Δ/T), where Δ is the size difference between solutions.
+
+    Args:
+        current_code (List[Any]): Current solution (list of codewords).
+                                  Typically the best-known or current
+                                  working solution.
+        candidate (List[Any]): Candidate (neighbor) solution being evaluated.
+                              Usually generated by a perturbation or
+                              local move from the current solution.
+        T (float): Current temperature parameter in simulated annealing.
+                  Higher temperatures increase the probability of accepting
+                  worse solutions. As T decreases toward 0, the algorithm
+                  becomes more greedy (only accepts improvements).
+    
+    Returns:
+        List[Any]: Either the candidate solution (if accepted) or the
+                  current_code (if rejected). Returns candidate for
+                  improvements or when probabilistic acceptance succeeds.
     """
     delta = len(candidate) - len(current_code)
 
@@ -707,16 +767,8 @@ def accept(current_code, candidate, T):
     return current_code
 
 
-def simulated_annealing(
-    n,
-    d,
-    iterations=5000,
-    T_start=1.0,
-    T_end=0.01,
-    tabu_tenure=20,
-    max_perturbation=3,
-    seed=None
-):
+def simulated_annealing(n, d, iterations=5000, T_start=1.0, T_end=0.01,
+    tabu_tenure=20, max_perturbation=3, seed=None):
     """
     Estimate A(n, d) using simulated annealing with tabu memory.
 
