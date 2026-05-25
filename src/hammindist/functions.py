@@ -5,7 +5,6 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import random
 import math
-import itertools
 import sys
 import time
 
@@ -138,15 +137,15 @@ class HammingTupla:
 
 def hamming_distance(X, Y):
     """
-    Calculate the distance between two elements with the same lenght
+    Calculate the distance between two elements with the same length
     Arg:
-        X: a string, an array or a tuple of 0's and 1's with lenght n
-        Y: a string, an array or a tuple of 0's and 1's with lenght n
+        X: a string, an array or a tuple of 0's and 1's with length n
+        Y: a string, an array or a tuple of 0's and 1's with length n
     Returns:
         d: a integer value non negative
     """
     if len(X) != len(Y):
-        return "WARNING: the strings or arrays must have the same lenght"
+        return "WARNING: the strings or arrays must have the same length"
     X_unpacked = [str(x) for x in [*X]]
     Y_unpacked = [str(y) for y in [*Y]]
     d = 0  # lets count the amount of characters that are different beetwen X and Y
