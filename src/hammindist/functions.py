@@ -317,11 +317,6 @@ def build_adjacency_bitsets(n: int, d: int, even_only: bool = False):
      """
     Build an adjacency bitset representation of a graph where vertices are binary strings
     of length n, and edges connect vertices whose Hamming distance is at least d.
-
-    The graph is built on the set of all binary strings of length n (from 0 to 2^n - 1).
-    Each vertex is represented by its integer value, where the binary representation
-    corresponds to the string bits.
-
     Args:
         n: Length of binary strings (number of bits).
         d: Minimum Hamming distance required for an edge between vertices.
@@ -329,13 +324,12 @@ def build_adjacency_bitsets(n: int, d: int, even_only: bool = False):
                   (even number of 1-bits). Defaults to False.
 
     Returns:
-        tuple: A 3-element tuple containing:
-            - adj (List[int]): Adjacency list as bitsets. adj[i] is an integer whose
-              j-th bit (from LSB) indicates if vertex i is connected to vertex j.
-              Only bits for j > i are stored (lower triangular representation).
-            - N (int): Number of vertices in the graph.
-            - vertices (List[int]): List of vertex values (integers) in the same order
-              as their indices in the adjacency list.
+        adj: Adjacency list as bitsets. adj[i] is an integer whose
+            j-th bit (from LSB) indicates if vertex i is connected to vertex j.
+            Only bits for j > i are stored (lower triangular representation).
+        N: Number of vertices in the graph.
+        vertices: List of vertex values (integers) in the same order
+            as their indices in the adjacency list.
     """
     total = 1 << n
     vertices = [v for v in range(total) if (not even_only) or (v.bit_count() % 2 == 0)]
@@ -350,7 +344,7 @@ def build_adjacency_bitsets(n: int, d: int, even_only: bool = False):
     return adj, N, vertices
 
 def greedy_color(P_bits, adj):
-        """
+    """
     Greedy coloring of the subgraph induced by a set of vertices.
     
     This function performs a greedy graph coloring on the subgraph containing
@@ -359,17 +353,16 @@ def greedy_color(P_bits, adj):
     degree first).
     
     Args:
-        P_bits (int): Bitset representing the set of vertices to include in the
+        P_bits: Bitset representing the set of vertices to include in the
                      subgraph. Bit i is set if vertex i is present.
-        adj (List[int]): Adjacency bitsets for the full graph. adj[i] is an
+        adj: Adjacency bitsets for the full graph. adj[i] is an
                         integer where bit j indicates an edge between vertices
                         i and j (assuming j > i for upper triangular storage).
     
     Returns:
-        tuple: A 2-element tuple containing:
-            - sorted_verts (List[int]): List of vertices sorted by color in
+        sorted_verts: List of vertices sorted by color in
               descending order (vertices with higher color numbers first).
-            - num_colors (int): Number of colors used in the coloring.
+        num_colors: Number of colors used in the coloring.
     """
     verts = []
     bits = P_bits
@@ -404,27 +397,21 @@ def greedy_color(P_bits, adj):
 def greedy_initial_clique(adj, N, vertices):
     """
     Find a large clique using a greedy heuristic to obtain a lower bound.
-    
-    This function constructs a maximal clique by iteratively adding vertices
-    that are adjacent to all previously selected vertices. Vertices are
-    considered in descending order of their degree to increase the chance
-    of finding a large clique quickly.
-    
     Args:
-        adj (List[int]): Adjacency bitsets for the graph. adj[i] is an integer
+        adj: Adjacency bitsets for the graph. adj[i] is an integer
                         where bit j indicates an edge between vertices i and j.
-        N (int): Number of vertices in the graph (length of adj list).
-        vertices (List[int]): List of vertex values (integers) corresponding
+        N : Number of vertices in the graph (length of adj list).
+        vertices: List of vertex values (integers) corresponding
                              to indices 0..N-1 in the adjacency list. This
                              parameter is primarily for interface consistency
                              with other functions, but not used directly in
                              the heuristic.
     
     Returns:
-        tuple: A 2-element tuple containing:
-            - size (int): Size of the found clique (number of vertices).
-            - clique_bitset (int): Integer bitset where bit i is set if vertex i
-                                   (index in adjacency list) belongs to the clique."""
+        size (int): Size of the found clique (number of vertices).
+        clique_bitset (int): Integer bitset where bit i is set if vertex i
+                            (index in adjacency list) belongs to the clique.
+    """
     order = list(range(N))
     order.sort(key=lambda v: -adj[v].bit_count())
     current = 0
@@ -434,30 +421,39 @@ def greedy_initial_clique(adj, N, vertices):
     return current.bit_count(), current
 
 def max_clique_tomita(adj, N, vertices, use_translation=True):
-    """Algoritmo de Tomita para el tamaño de la clique máxima.
-    Devuelve (tamaño, bitset de la clique encontrada)."""
-    # Clique inicial greedy
+    """
+    Tomita's algorithm for the length of maximum clique
+    Args:
+        adj: Adjacency bitsets for the graph. adj[i] is an integer
+                where bit j indicates an edge between vertices i and j.
+        N: number of nodes in the graph
+        vertices: nodes to work
+    Returns:
+        max_size: maximun size finded
+        best_clique: the best clique that the fuction was able to build
+    """
+    # started clique greedy
     max_size, best_clique_bits = greedy_initial_clique(adj, N, vertices)
 
     if use_translation:
-        # Fijamos el vértice 0 (índice 0) en la clique
+        # we set the vetex 0 in the clique
         R0 = 1 << 0
         P0 = (1 << N) - 1
-        P0 &= adj[0]          # solo vecinos de 0
+        P0 &= adj[0]          # only neighboors of 0
         X0 = 0
     else:
         R0 = 0
         P0 = (1 << N) - 1
         X0 = 0
 
-    # Variable para almacenar la mejor clique encontrada (como bitset)
-    # Inicialmente la mejor es la greedy
+    # variable to save the best clique until now (as bitset)
+    # at the start the greedy is the best one
     best_clique = best_clique_bits
 
     def expand(R_bits, P_bits, X_bits):
         nonlocal max_size, best_clique
         cur_sz = R_bits.bit_count()
-        # Poda simple
+        # simple pruning
         if cur_sz + P_bits.bit_count() <= max_size:
             return
         if P_bits == 0 and X_bits == 0:
@@ -465,11 +461,11 @@ def max_clique_tomita(adj, N, vertices, use_translation=True):
                 max_size = cur_sz
                 best_clique = R_bits
             return
-        # Poda por coloración
+        # pruning by coloration
         sorted_cand, colors = greedy_color(P_bits, adj)
         if cur_sz + colors <= max_size:
             return
-        # Pivote: vértice en P∪X con mayor vecindario en P
+        # Pivot: a vertex in PuX with greater neighborhood  in P
         union = P_bits | X_bits
         best_u = -1
         best_deg = -1
@@ -482,7 +478,7 @@ def max_clique_tomita(adj, N, vertices, use_translation=True):
                 best_deg = deg
                 best_u = u
             temp ^= u_bit
-        # Candidatos = P \ N(best_u)
+        # candidates = P \ N(best_u)
         candidates = P_bits & ~adj[best_u]
         for v in sorted_cand:
             v_bit = 1 << v
@@ -500,18 +496,26 @@ def max_clique_tomita(adj, N, vertices, use_translation=True):
     return max_size, best_clique
 
 def A(n, d, verbose=True):
-    """Calcula A(n,d) y devuelve (valor, código) donde código es una lista de enteros (palabras)."""
-    even_only = (d % 2 == 0)   # reducción por paridad
+    """
+    Calculate A(n, d)
+    Args:
+        n: the length of the code
+        d: the minimum distance in the final set
+    Returns:
+        size: the length of the set (number of elements)
+        code: the set with the elements at minimum distance d
+        """
+    even_only = (d % 2 == 0)   # parity reduction
     if verbose:
-        print(f"Construyendo grafo de adyacencia (distancia ≥ {d}) para n={n}...")
+        print(f"Building an adjacence graph (distance ≥ {d}) forn={n}...")
     adj, N, vertices = build_adjacency_bitsets(n, d, even_only)
     if verbose:
-        print(f"Vértices: {N} (reducción por paridad: {even_only})")
+        print(f"Nodes: {N} (parity reduction: {even_only})")
     start = time.time()
     size, clique_bits = max_clique_tomita(adj, N, vertices, use_translation=True)
     elapsed = time.time() - start
     
-    # Convertir el bitset de la clique a una lista de palabras originales
+    # Transform the bitset's clique to a list of the original codes
     code = []
     bits = clique_bits
     while bits:
@@ -519,13 +523,10 @@ def A(n, d, verbose=True):
         code.append(vertices[v])
         bits &= bits - 1
     
-    # Si usamos reducción por paridad, el código obtenido es de peso par. No es necesario volver a trasladar.
     if verbose:
         print(f"A({n},{d}) = {size}  (tiempo: {elapsed:.2f} segundos)")
         print("Código encontrado (palabras en decimal):")
         print(code)
-        # Opcional: mostrar también en binario
-        # print([format(w, f'0{n}b') for w in code])
     return size, code
 
 # Heuristic Functions 
