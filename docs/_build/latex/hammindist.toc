@@ -1,0 +1,3 @@
+\babel@toc {english}{}\relax 
+\contentsline {chapter}{\numberline {1}Solvers API}{1}{chapter.1}%
+\contentsline {chapter}{Python Module Index}{9}{section*.31}%

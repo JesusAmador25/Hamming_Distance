@@ -1,0 +1,30 @@
+\indexentry{module@\spxentry{module}!hammindist.functions@\spxentry{hammindist.functions}|hyperpage}{1}
+\indexentry{hammindist.functions@\spxentry{hammindist.functions}!module@\spxentry{module}|hyperpage}{1}
+\indexentry{A() (in module hammindist.functions)@\spxentry{A()}\spxextra{in module hammindist.functions}|hyperpage}{1}
+\indexentry{HammingTupla (class in hammindist.functions)@\spxentry{HammingTupla}\spxextra{class in hammindist.functions}|hyperpage}{1}
+\indexentry{lenght (hammindist.functions.HammingTupla attribute)@\spxentry{lenght}\spxextra{hammindist.functions.HammingTupla attribute}|hyperpage}{1}
+\indexentry{distance (hammindist.functions.HammingTupla attribute)@\spxentry{distance}\spxextra{hammindist.functions.HammingTupla attribute}|hyperpage}{1}
+\indexentry{graph (hammindist.functions.HammingTupla attribute)@\spxentry{graph}\spxextra{hammindist.functions.HammingTupla attribute}|hyperpage}{1}
+\indexentry{as\_list() (hammindist.functions.HammingTupla method)@\spxentry{as\_list()}\spxextra{hammindist.functions.HammingTupla method}|hyperpage}{1}
+\indexentry{draw() (hammindist.functions.HammingTupla method)@\spxentry{draw()}\spxextra{hammindist.functions.HammingTupla method}|hyperpage}{1}
+\indexentry{get\_instances\_complete() (hammindist.functions.HammingTupla method)@\spxentry{get\_instances\_complete()}\spxextra{hammindist.functions.HammingTupla method}|hyperpage}{1}
+\indexentry{get\_instances\_restricted() (hammindist.functions.HammingTupla method)@\spxentry{get\_instances\_restricted()}\spxextra{hammindist.functions.HammingTupla method}|hyperpage}{1}
+\indexentry{hamming\_distance() (hammindist.functions.HammingTupla static method)@\spxentry{hamming\_distance()}\spxextra{hammindist.functions.HammingTupla static method}|hyperpage}{2}
+\indexentry{accept() (in module hammindist.functions)@\spxentry{accept()}\spxextra{in module hammindist.functions}|hyperpage}{2}
+\indexentry{binary\_hamming\_distance() (in module hammindist.functions)@\spxentry{binary\_hamming\_distance()}\spxextra{in module hammindist.functions}|hyperpage}{2}
+\indexentry{build\_adjacency\_bitsets() (in module hammindist.functions)@\spxentry{build\_adjacency\_bitsets()}\spxextra{in module hammindist.functions}|hyperpage}{2}
+\indexentry{build\_outside\_pool() (in module hammindist.functions)@\spxentry{build\_outside\_pool()}\spxextra{in module hammindist.functions}|hyperpage}{3}
+\indexentry{greedy\_color() (in module hammindist.functions)@\spxentry{greedy\_color()}\spxextra{in module hammindist.functions}|hyperpage}{3}
+\indexentry{greedy\_initial\_clique() (in module hammindist.functions)@\spxentry{greedy\_initial\_clique()}\spxextra{in module hammindist.functions}|hyperpage}{3}
+\indexentry{greedy\_start() (in module hammindist.functions)@\spxentry{greedy\_start()}\spxextra{in module hammindist.functions}|hyperpage}{4}
+\indexentry{heuristic() (in module hammindist.functions)@\spxentry{heuristic()}\spxextra{in module hammindist.functions}|hyperpage}{4}
+\indexentry{is\_valid\_set() (in module hammindist.functions)@\spxentry{is\_valid\_set()}\spxextra{in module hammindist.functions}|hyperpage}{5}
+\indexentry{max\_clique\_tomita() (in module hammindist.functions)@\spxentry{max\_clique\_tomita()}\spxextra{in module hammindist.functions}|hyperpage}{5}
+\indexentry{max\_set() (in module hammindist.functions)@\spxentry{max\_set()}\spxextra{in module hammindist.functions}|hyperpage}{5}
+\indexentry{max\_set\_bounded() (in module hammindist.functions)@\spxentry{max\_set\_bounded()}\spxextra{in module hammindist.functions}|hyperpage}{5}
+\indexentry{plotkin\_bound() (in module hammindist.functions)@\spxentry{plotkin\_bound()}\spxextra{in module hammindist.functions}|hyperpage}{6}
+\indexentry{select\_words\_to\_remove() (in module hammindist.functions)@\spxentry{select\_words\_to\_remove()}\spxextra{in module hammindist.functions}|hyperpage}{6}
+\indexentry{simulated\_annealing() (in module hammindist.functions)@\spxentry{simulated\_annealing()}\spxextra{in module hammindist.functions}|hyperpage}{6}
+\indexentry{sphere\_packing\_bound() (in module hammindist.functions)@\spxentry{sphere\_packing\_bound()}\spxextra{in module hammindist.functions}|hyperpage}{7}
+\indexentry{try\_add\_codewords() (in module hammindist.functions)@\spxentry{try\_add\_codewords()}\spxextra{in module hammindist.functions}|hyperpage}{7}
+\indexentry{upper\_bound() (in module hammindist.functions)@\spxentry{upper\_bound()}\spxextra{in module hammindist.functions}|hyperpage}{7}
