@@ -315,12 +315,7 @@ def binary_hamming_distance(x: int, y: int) -> int:
 
 
 def build_adjacency_bitsets(n: int, d: int, even_only: bool = False):
-<<<<<<< HEAD
-    """Grafo de adyacencia: arista si distancia >= d.
-    Si even_only=True, solo vértices de peso par."""
-    total = (1 << n)
-=======
-     """
+    """
     Build an adjacency bitset representation of a graph where vertices are binary strings
     of length n, and edges connect vertices whose Hamming distance is at least d.
     Args:
@@ -338,7 +333,6 @@ def build_adjacency_bitsets(n: int, d: int, even_only: bool = False):
             as their indices in the adjacency list.
     """
     total = 1 << n
->>>>>>> 2c4ad4e79c3fec975ca1de3b22484a8527ae8e3f
     vertices = [v for v in range(total) if (not even_only) or (v.bit_count() % 2 == 0)]
     N = len(vertices)
     idx = {v: i for i, v in enumerate(vertices)}
