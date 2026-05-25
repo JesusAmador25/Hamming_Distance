@@ -313,10 +313,11 @@ sys.setrecursionlimit(1000000)
 def binary_hamming_distance(x: int, y: int) -> int:
     return (x ^ y).bit_count()
 
+
 def build_adjacency_bitsets(n: int, d: int, even_only: bool = False):
     """Grafo de adyacencia: arista si distancia >= d.
     Si even_only=True, solo vértices de peso par."""
-    total = 1 << n
+    total = (1 << n)
     vertices = [v for v in range(total) if (not even_only) or (v.bit_count() % 2 == 0)]
     N = len(vertices)
     idx = {v: i for i, v in enumerate(vertices)}
@@ -327,6 +328,7 @@ def build_adjacency_bitsets(n: int, d: int, even_only: bool = False):
                 adj[a] |= (1 << b)
                 adj[b] |= (1 << a)
     return adj, N, vertices
+
 
 def greedy_color(P_bits, adj):
     """Coloreo greedy del subgrafo inducido por P_bits.
