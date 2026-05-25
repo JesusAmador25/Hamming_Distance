@@ -314,8 +314,29 @@ def binary_hamming_distance(x: int, y: int) -> int:
     return (x ^ y).bit_count()
 
 def build_adjacency_bitsets(n: int, d: int, even_only: bool = False):
-    """Grafo de adyacencia: arista si distancia >= d.
-    Si even_only=True, solo vértices de peso par."""
+     """
+    Build an adjacency bitset representation of a graph where vertices are binary strings
+    of length n, and edges connect vertices whose Hamming distance is at least d.
+
+    The graph is built on the set of all binary strings of length n (from 0 to 2^n - 1).
+    Each vertex is represented by its integer value, where the binary representation
+    corresponds to the string bits.
+
+    Args:
+        n: Length of binary strings (number of bits).
+        d: Minimum Hamming distance required for an edge between vertices.
+        even_only: If True, only include vertices with even parity
+                  (even number of 1-bits). Defaults to False.
+
+    Returns:
+        tuple: A 3-element tuple containing:
+            - adj (List[int]): Adjacency list as bitsets. adj[i] is an integer whose
+              j-th bit (from LSB) indicates if vertex i is connected to vertex j.
+              Only bits for j > i are stored (lower triangular representation).
+            - N (int): Number of vertices in the graph.
+            - vertices (List[int]): List of vertex values (integers) in the same order
+              as their indices in the adjacency list.
+    """
     total = 1 << n
     vertices = [v for v in range(total) if (not even_only) or (v.bit_count() % 2 == 0)]
     N = len(vertices)
@@ -329,8 +350,27 @@ def build_adjacency_bitsets(n: int, d: int, even_only: bool = False):
     return adj, N, vertices
 
 def greedy_color(P_bits, adj):
-    """Coloreo greedy del subgrafo inducido por P_bits.
-    Devuelve (lista_vertices_ordenados, número_de_colores)."""
+        """
+    Greedy coloring of the subgraph induced by a set of vertices.
+    
+    This function performs a greedy graph coloring on the subgraph containing
+    only the vertices specified by P_bits. The coloring order is optimized
+    by sorting vertices by their degree within the induced subgraph (highest
+    degree first).
+    
+    Args:
+        P_bits (int): Bitset representing the set of vertices to include in the
+                     subgraph. Bit i is set if vertex i is present.
+        adj (List[int]): Adjacency bitsets for the full graph. adj[i] is an
+                        integer where bit j indicates an edge between vertices
+                        i and j (assuming j > i for upper triangular storage).
+    
+    Returns:
+        tuple: A 2-element tuple containing:
+            - sorted_verts (List[int]): List of vertices sorted by color in
+              descending order (vertices with higher color numbers first).
+            - num_colors (int): Number of colors used in the coloring.
+    """
     verts = []
     bits = P_bits
     while bits:
@@ -362,7 +402,29 @@ def greedy_color(P_bits, adj):
     return sorted_verts, num_colors
 
 def greedy_initial_clique(adj, N, vertices):
-    """Cota inferior rápida: clique greedy. Devuelve (tamaño, bitset de la clique)."""
+    """
+    Find a large clique using a greedy heuristic to obtain a lower bound.
+    
+    This function constructs a maximal clique by iteratively adding vertices
+    that are adjacent to all previously selected vertices. Vertices are
+    considered in descending order of their degree to increase the chance
+    of finding a large clique quickly.
+    
+    Args:
+        adj (List[int]): Adjacency bitsets for the graph. adj[i] is an integer
+                        where bit j indicates an edge between vertices i and j.
+        N (int): Number of vertices in the graph (length of adj list).
+        vertices (List[int]): List of vertex values (integers) corresponding
+                             to indices 0..N-1 in the adjacency list. This
+                             parameter is primarily for interface consistency
+                             with other functions, but not used directly in
+                             the heuristic.
+    
+    Returns:
+        tuple: A 2-element tuple containing:
+            - size (int): Size of the found clique (number of vertices).
+            - clique_bitset (int): Integer bitset where bit i is set if vertex i
+                                   (index in adjacency list) belongs to the clique."""
     order = list(range(N))
     order.sort(key=lambda v: -adj[v].bit_count())
     current = 0
