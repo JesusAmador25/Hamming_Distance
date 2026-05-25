@@ -147,7 +147,7 @@ def is_valid_set(candidate_set, new_code, min_distance):
         bool: True if the set is valid, False if the set is not valid
     """
     for existing in candidate_set:
-        distance = hamming_distance(new_code, existing)
+        distance = HammingTupla.hamming_distance(new_code, existing) 
         if distance < min_distance:
             return False
     return True
