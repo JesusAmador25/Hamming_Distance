@@ -166,7 +166,7 @@ def is_valid_set(candidate_set, new_code, min_distance):
         min_distance: the minimum distance that must havee the all elements of the set
             with the new code
     Returns:
-
+        boolean: True if the set is valid, False if the set is not valid
     """
     for existing in candidate_set:
         distance = hamming_distance(new_code, existing)
@@ -307,12 +307,6 @@ def max_set_bounded(length, min_distance):
     return best_set
 
 # Graphs Functions
-
-#En esta seccion se implementa el algoritmo de Tomita para encontrar el tamaño 
-#del clan maximal de la grafica de Hamming, con algunas optimizaciones como la 
-#reducción por paridad y poda por coloración greedy
-#1.La función que calcula el tamaño del clan maximal de la grafica de hamming
-#sin embargo no es eficiente calculando grafos densos como A(8,3) en adelante
 
 sys.setrecursionlimit(1000000)
 
