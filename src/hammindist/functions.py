@@ -310,8 +310,8 @@ def max_set_bounded(length, min_distance):
 
 #En esta seccion se implementa el algoritmo de Tomita para encontrar el tamaño 
 #del clan maximal de la grafica de Hamming, con algunas optimizaciones como la 
-#reducción por paridad y poda por coloración asi como la creacion de la grafica de Hamming usando networkx.
-#1. Función que calcula el tamaño del clan maximal de la grafica de hamming
+#reducción por paridad y poda por coloración greedy
+#1.La función que calcula el tamaño del clan maximal de la grafica de hamming
 #sin embargo no es eficiente calculando grafos densos como A(8,3) en adelante
 
 sys.setrecursionlimit(1000000)
@@ -471,25 +471,6 @@ def A(n, d, verbose=True):
         # Opcional: mostrar también en binario
         # print([format(w, f'0{n}b') for w in code])
     return size, code
-
-
-
-#Funciones que crean la grafica de Hamming en un objeto de networxk
-
-def build_hamming_graph(n: int, d: int) -> nx.Graph:
-    """
-    Construye el grafo de Hamming H(n, d):
-    - Vértices: números enteros de 0 a 2^n - 1 (representan palabras binarias)
-    - Arista entre u y v si hamming_distance(u, v) >= d
-    """
-    num_vertices = 1 << n
-    G = nx.Graph()
-    G.add_nodes_from(range(num_vertices))
-    for u in range(num_vertices):
-        for v in range(u + 1, num_vertices):
-            if binary_hamming_distance(u, v) >= d:
-                G.add_edge(u, v)
-    return G
 
 # Heuristic Functions 
 
