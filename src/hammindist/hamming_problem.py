@@ -7,6 +7,7 @@ import math
 import itertools
 import sys
 import time
+from math import comb
 # Classes
 class HammingTupla:
     """
