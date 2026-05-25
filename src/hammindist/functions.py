@@ -541,16 +541,14 @@ def greedy_start(all_words, d):
     This is used as a warm start for more sophisticated heuristics
     such as simulated annealing.
 
-    Parameters
-    ----------
-    all_words : list of tuple of int
+    Args:
+    all_words (List[int])
         All candidate binary codewords of length n.
-    d : int
+    d (int):
         Minimum Hamming distance required between any two codewords.
 
-    Returns
-    -------
-    code : list of tuple of int
+    Returns:
+    code (List[int]):
         A valid code built greedily. Not guaranteed to be optimal.
     """
     candidates = all_words.copy()  # copy to avoid modifying the original list
@@ -578,20 +576,19 @@ def heuristic(n, d, iterations=1000, seed=None):
     This is a heuristic, so the result is a lower bound on A(n, d).
     It is not guaranteed to find the true optimum.
 
-    Parameters
-    ----------
-    n : int
+    Args:
+    n (int):
         Length of the binary codewords.
-    d : int
+    d (int):
         Minimum Hamming distance required between any two codewords.
     iterations : int, optional
         Number of random restarts (default is 1000).
-    seed : int or None, optional
+    seed (int or None)
         Random seed for reproducibility (default is None).
 
     Returns:
 
-    best_code : list of tuple of int
+    best_code (List[int]):
         The largest valid code found.
     """
     if seed is not None:
