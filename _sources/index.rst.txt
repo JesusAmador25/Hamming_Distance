@@ -7,6 +7,6 @@ hammindist Documentation
 
 Solvers API
 -----------
-.. automodule:: hammindist.solvers
+.. automodule:: hammindist.functions
    :members:
    :undoc-members:
